@@ -4,6 +4,13 @@ module.exports = function(options, callback) {
     const oneMonthAgo = moment().add(-1, "month").toISOString();
     let counts = {};
 
+    if (!options.db.issue) {
+        return callback({
+            message: "There are no issues to count",
+            stack: "skipping"
+        });
+    }
+
     /* Work out how many issues are open now */
     options.db.issue.count({state: "open"}).then(openNowCount => {
         counts.openNowCount = openNowCount;

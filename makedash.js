@@ -267,6 +267,7 @@ function runWidgets(options) {
             colls.forEach(c => {
                 colldict[c.collectionName] = c;
             })
+
             var in_params = {db: colldict, templates: options.templates};
             async.map(options.widgets, function(widget, done) {
                 widget.module(in_params, function(err, result) {

@@ -22,7 +22,7 @@ Now, start up the crawler:
 cd ghcrawler
 npm install # you only need to do this the first time
 cd docker
-docker-compose up # this will take a while the first time because it downloads docker images
+CRAWLER_GITHUB_TOKENS=<your github token> docker-compose up # this will take a while the first time because it downloads docker images
 ```
 
 and teach the crawler about your repositories:

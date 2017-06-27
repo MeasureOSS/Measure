@@ -4,6 +4,8 @@
 
 (most of these steps will get automated. But they aren't, yet.)
 
+You will need node 6.x. Sorry. https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions
+
 Check out ghcrawler and -cli:
 
 ```
@@ -26,6 +28,7 @@ and teach the crawler about your repositories:
 
 ```
 cd ghcrawler-cli
+npm install # you only need to do this the first time
 node bin/cc tokens "<your github token>#private" # the quotes are important here
 node bin/cc queue agithubid/agithubrepo # e.g., stuartlangridge/sorttable
 node bin/cc start 5

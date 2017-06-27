@@ -1,0 +1,21 @@
+{
+  "name": "makedash",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.5.0",
+    "fs-extra": "^3.0.1",
+    "js-yaml": "^3.8.4",
+    "moment": "^2.18.1",
+    "mongo-trigger": "^0.1.5",
+    "mongodb": "^2.2.29",
+    "plugin-system": "^0.2.1",
+    "word-wrap": "^1.2.3"
+  }
+}

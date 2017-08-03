@@ -268,41 +268,41 @@ const LIMITS = {
     repo:{
         issue: {
             find: (repo, existing) => {return {$and: [existing, {
-                repository_url: {$regex: new RegExp(repo + "$")}}]}},
+                repository_url: {$regex: new RegExp(repo + "$", "i")}}]}},
             count: (repo, existing) => {return {$and: [existing, {
-                repository_url: {$regex: new RegExp(repo + "$")}}]}},
+                repository_url: {$regex: new RegExp(repo + "$", "i")}}]}},
             distinct: (repo, existing) => {return {$and: [existing, {
-                repository_url: {$regex: new RegExp(repo + "$")}}]}},
+                repository_url: {$regex: new RegExp(repo + "$", "i")}}]}},
             aggregate: (repo, existing) => {
                 var nexisting = existing.slice();
-                nexisting.unshift({$match: {repository_url: {$regex: new RegExp(repo + "$")}}});
+                nexisting.unshift({$match: {repository_url: {$regex: new RegExp(repo + "$", "i")}}});
                 return nexisting;
             }
         },
         issue_comment: {
             find: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$", "i")}}]}},
             count: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$", "i")}}]}},
             distinct: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$", "i")}}]}},
             aggregate: (repo, existing) => {
                 var nexisting = existing.slice();
-                nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}});
+                nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$", "i")}}});
                 return nexisting;
             }
         },
         pull_request: {
             // pull requests in the data don't link directly to their repo, so parse their url
             find: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$", "i")}}]}},
             count: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$", "i")}}]}},
             distinct: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$", "i")}}]}},
             aggregate: (repo, existing) => {
                 var nexisting = existing.slice();
-                nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}});
+                nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$", "i")}}});
                 return nexisting;
             }
         }
@@ -424,7 +424,7 @@ function dashboardForEachRepo(options) {
             var repo_output_pairs = [];
             arrayOfOptions.forEach(function(o) {
                 repo_output_pairs.push({
-                    repo: o.repo,
+                    repo: o.limit.value,
                     outputSlug: o.outputSlug,
                     outputFile: o.outputFile
                 })
@@ -437,6 +437,9 @@ function dashboardForEachRepo(options) {
 }
 
 function dashboardForEachContributor(options) {
+    return options.db.user.find({}).toArray().then(users => {
+
+    })
     var dashboardMakers = options.userConfig.github_repositories.map(repo => {
         return runWidgets(options, {limitType: "repo", value: repo})
             .then(assembleDashboard);
@@ -464,7 +467,7 @@ loadTemplates()
     .then(readConfig)
     .then(connectToDB)
     .then(dashboardForEachRepo)
-    .then(dashboardForEachContributor)
+    //.then(dashboardForEachContributor)
     .then(frontPage)
     .then(leave)
     .catch(e => {

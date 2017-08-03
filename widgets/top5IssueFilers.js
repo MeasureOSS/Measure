@@ -5,7 +5,7 @@ module.exports = function(options, callback) {
     ], (err, res) => {
         if (err) return callback(err);
         var result = {
-            title: "Top 5 issue commenters",
+            title: "Top 5 issue filers",
             list: res.slice(0,5).map(l => { 
                 return {html: '<a href="https://github.com/' + l._id + '">' + l._id + '</a>'}; 
             })

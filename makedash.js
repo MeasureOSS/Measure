@@ -6,6 +6,9 @@ const async = require('async');
 const mu = require('mu2');
 const yaml = require('js-yaml');
 const wrap = require('word-wrap');
+const util = require('util');
+const entries = require('object.entries');
+if (!Object.entries) { entries.shim(); }
 
 var db;
 
@@ -24,7 +27,7 @@ function loadTemplates() {
     Realistically, widgets use these by name, so just adding a new one to be
     dynamically picked up doesn't buy us much.
     */
-    const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard"];
+    const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front"];
 
     return new Promise((resolve, reject) => {
         /*
@@ -226,7 +229,7 @@ function readConfig(options) {
             if (e.name === "YAMLException") { return reject(NICE_ERRORS.BAD_CONFIG_ERROR(e, config_file_name));}
             return reject(e);
         }
-        if (!doc.github_repositories) {
+        if (!doc.github_repositories || !Array.isArray(doc.github_repositories)) {
             return reject(NICE_ERRORS.NO_REPOS_CONFIGURED(config_file_name));
         }
         if (!doc.output_directory) {
@@ -254,7 +257,48 @@ function readConfig(options) {
     })
 }
 
-function runWidgets(options) {
+/* These are basically monkeypatches. The top level keys are collections; inside that are methods.
+   Each monkeypatch defines a function with parameters (repo, existing); this means that when
+   a widget calls db.issue.find({whatever:foo}), the {issue: {find: ...}} monkeypatch will get called with
+   a repo parameter naming a github repository ("stuartlangridge/sorttable", frex) and the existing
+   query ({whatever:foo}). It is the monkeypatch's job to return a new dict, to be used instead of
+   "existing", which does whatever "existing" does PLUS also limits the query to only those documents
+   matching the repo name that was passed in. */
+const LIMIT_COLLECTION_TO_REPO = {
+    issue: {
+        find: (repo, existing) => {return {$and: [existing, {repository_url: {$regex: new RegExp(repo + "$")}}]}},
+        count: (repo, existing) => {return {$and: [existing, {repository_url: {$regex: new RegExp(repo + "$")}}]}},
+        distinct: (repo, existing) => {return {$and: [existing, {repository_url: {$regex: new RegExp(repo + "$")}}]}},
+        aggregate: (repo, existing) => {
+            var nexisting = existing.slice();
+            nexisting.unshift({$match: {repository_url: {$regex: new RegExp(repo + "$")}}});
+            return nexisting;
+        }
+    },
+    issue_comment: {
+        find: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+        count: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+        distinct: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+        aggregate: (repo, existing) => {
+            var nexisting = existing.slice();
+            nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}});
+            return nexisting;
+        }
+    },
+    pull_request: {
+        // pull requests in the data don't link directly to their repo, so parse their url
+        find: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+        count: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+        distinct: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+        aggregate: (repo, existing) => {
+            var nexisting = existing.slice();
+            nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}});
+            return nexisting;
+        }
+    }
+}
+
+function runWidgets(options, repo) {
     /*
     For each of our loaded widgets, we pass it the database connection information
     it needs, and a list of templates it can use; it then calls the callback with
@@ -268,7 +312,25 @@ function runWidgets(options) {
                 colldict[c.collectionName] = c;
             })
 
-            var in_params = {db: colldict, templates: options.templates};
+            // Monkeypatch the find, count, and aggregate functions
+            Object.entries(colldict).forEach(([collname, coll]) => {
+                let replacements = LIMIT_COLLECTION_TO_REPO[collname];
+                if (replacements) {
+                    Object.entries(replacements).forEach(([method, fixQuery]) => {
+                        let orig = coll[method];
+                        coll[method] = function() {
+                            let nargs = Array.prototype.slice.call(arguments);
+                            let argIndex = 0;
+                            if (method == "distinct") { argIndex = 1; } // bit of a hack, this.
+                            nargs[argIndex] = fixQuery(repo, nargs[argIndex]);
+                            console.log(repo, collname, method, util.inspect(nargs, {depth:null}));
+                            return orig.apply(coll, nargs);
+                        }
+                    })
+                }
+            })
+
+            var in_params = {db: colldict, templates: options.templates, "repo": repo};
             async.map(options.widgets, function(widget, done) {
                 widget.module(in_params, function(err, result) {
                     if (err) {
@@ -279,7 +341,7 @@ function runWidgets(options) {
                 });
             }, function(err, results) {
                 var htmls = results.filter(h => !!h);
-                return resolve(Object.assign({htmls: htmls}, options));
+                return resolve(Object.assign({htmls: htmls, repo: repo}, options));
             })
         });
     });
@@ -292,7 +354,30 @@ function assembleDashboard(options) {
     file as defined in the config.
     */
     return new Promise((resolve, reject) => {
-        options.templates.dashboard({widgets: options.htmls}, (err, output) => {
+        options.templates.dashboard({widgets: options.htmls, subtitle: options.repo}, (err, output) => {
+            if (err) return reject(err);
+            const outputSlug = options.repo.replace("/", "--") + "-index.html";
+            const outputFile = path.join(options.userConfig.output_directory, outputSlug);
+            options.outputFile = outputFile; options.outputSlug = outputSlug;
+            fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
+                if (err) {
+                    return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
+                }
+                return resolve(options);
+            })
+        })
+    });
+}
+
+function frontPage(options) {
+    return new Promise((resolve, reject) => {
+        let links = options.repo_output_pairs.map(op => {
+            return {
+                link: op.outputSlug,
+                title: op.repo
+            }
+        })
+        options.templates.front({links: links}, (err, output) => {
             if (err) return reject(err);
             const outputFile = path.join(options.userConfig.output_directory, "index.html");
             const outputAssets = path.join(options.userConfig.output_directory, "assets");
@@ -314,15 +399,38 @@ function assembleDashboard(options) {
 function leave(options) {
     /* And shut all our stuff down. Don't close down ghcrawler itself. */
     options.db.close();
-    console.log(`Dashboard generated OK in directory '${options.userConfig.output_directory}'.`);
+    console.log(`Dashboards generated OK in directory '${options.userConfig.output_directory}'.`);
+}
+
+function dashboardForEachRepo(options) {
+    var dashboardMakers = options.userConfig.github_repositories.map(repo => {
+        return runWidgets(options, repo)
+            .then(assembleDashboard);
+    });
+    return Promise.all(dashboardMakers)
+        .then(function(arrayOfOptions) {
+            var optionsBase = Object.assign({}, arrayOfOptions[0]);
+            var repo_output_pairs = [];
+            arrayOfOptions.forEach(function(o) {
+                repo_output_pairs.push({
+                    repo: o.repo,
+                    outputSlug: o.outputSlug,
+                    outputFile: o.outputFile
+                })
+            })
+            delete optionsBase.repo;
+            delete optionsBase.outputFile;
+            optionsBase.repo_output_pairs = repo_output_pairs;
+            return optionsBase;
+        });
 }
 
 loadTemplates()
     .then(loadWidgets)
     .then(readConfig)
     .then(connectToDB)
-    .then(runWidgets)
-    .then(assembleDashboard)
+    .then(dashboardForEachRepo)
+    .then(frontPage)
     .then(leave)
     .catch(e => {
         if (db) db.close();

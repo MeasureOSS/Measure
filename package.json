@@ -16,6 +16,7 @@
     "mongo-trigger": "^0.1.5",
     "mongodb": "^2.2.29",
     "mu2": "^0.5.21",
+    "object.entries": "^1.0.4",
     "plugin-system": "^0.2.1",
     "word-wrap": "^1.2.3"
   }

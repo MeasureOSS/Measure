@@ -41,7 +41,6 @@ Check out the dash maker:
 git clone git@bitbucket.org:stuartlangridge/makedash-ghcrawler.git # that's this repo, so if you've already got it, just go to it
 npm install # only need this the first time
 cp config.yaml.example config.yaml
-# in theory you would now edit config.yaml, but the repos list in it is currently ignored.
 node makedash.js
 ```
 

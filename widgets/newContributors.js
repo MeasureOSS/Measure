@@ -12,11 +12,6 @@ module.exports = function(options, callback) {
                     if (err) return callback(err);
                     let recentUsers = recentIssueUsers.concat(recentPRUsers);
                     let oldUsers = oldPRUsers.concat(oldIssueUsers);
-                    console.log("************************");
-                    console.log("repo", options.repo);
-                    console.log("recent", recentUsers);
-                    console.log("old", oldUsers);
-                    console.log("************************");
                     let newUsers = [];
                     recentUsers.forEach(r => { 
                         if (oldUsers.indexOf(r) == -1) newUsers.push(r);

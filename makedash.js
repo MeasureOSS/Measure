@@ -264,41 +264,52 @@ function readConfig(options) {
    query ({whatever:foo}). It is the monkeypatch's job to return a new dict, to be used instead of
    "existing", which does whatever "existing" does PLUS also limits the query to only those documents
    matching the repo name that was passed in. */
-const LIMIT_COLLECTION_TO_REPO = {
-    issue: {
-        find: (repo, existing) => {return {$and: [existing, {repository_url: {$regex: new RegExp(repo + "$")}}]}},
-        count: (repo, existing) => {return {$and: [existing, {repository_url: {$regex: new RegExp(repo + "$")}}]}},
-        distinct: (repo, existing) => {return {$and: [existing, {repository_url: {$regex: new RegExp(repo + "$")}}]}},
-        aggregate: (repo, existing) => {
-            var nexisting = existing.slice();
-            nexisting.unshift({$match: {repository_url: {$regex: new RegExp(repo + "$")}}});
-            return nexisting;
-        }
-    },
-    issue_comment: {
-        find: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
-        count: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
-        distinct: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
-        aggregate: (repo, existing) => {
-            var nexisting = existing.slice();
-            nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}});
-            return nexisting;
-        }
-    },
-    pull_request: {
-        // pull requests in the data don't link directly to their repo, so parse their url
-        find: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
-        count: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
-        distinct: (repo, existing) => {return {$and: [existing, {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
-        aggregate: (repo, existing) => {
-            var nexisting = existing.slice();
-            nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}});
-            return nexisting;
+const LIMITS = {
+    repo:{
+        issue: {
+            find: (repo, existing) => {return {$and: [existing, {
+                repository_url: {$regex: new RegExp(repo + "$")}}]}},
+            count: (repo, existing) => {return {$and: [existing, {
+                repository_url: {$regex: new RegExp(repo + "$")}}]}},
+            distinct: (repo, existing) => {return {$and: [existing, {
+                repository_url: {$regex: new RegExp(repo + "$")}}]}},
+            aggregate: (repo, existing) => {
+                var nexisting = existing.slice();
+                nexisting.unshift({$match: {repository_url: {$regex: new RegExp(repo + "$")}}});
+                return nexisting;
+            }
+        },
+        issue_comment: {
+            find: (repo, existing) => {return {$and: [existing, {
+                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+            count: (repo, existing) => {return {$and: [existing, {
+                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+            distinct: (repo, existing) => {return {$and: [existing, {
+                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}]}},
+            aggregate: (repo, existing) => {
+                var nexisting = existing.slice();
+                nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$")}}});
+                return nexisting;
+            }
+        },
+        pull_request: {
+            // pull requests in the data don't link directly to their repo, so parse their url
+            find: (repo, existing) => {return {$and: [existing, {
+                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+            count: (repo, existing) => {return {$and: [existing, {
+                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+            distinct: (repo, existing) => {return {$and: [existing, {
+                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}]}},
+            aggregate: (repo, existing) => {
+                var nexisting = existing.slice();
+                nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$")}}});
+                return nexisting;
+            }
         }
     }
 }
 
-function runWidgets(options, repo) {
+function runWidgets(options, limit) {
     /*
     For each of our loaded widgets, we pass it the database connection information
     it needs, and a list of templates it can use; it then calls the callback with
@@ -314,7 +325,7 @@ function runWidgets(options, repo) {
 
             // Monkeypatch the find, count, and aggregate functions
             Object.entries(colldict).forEach(([collname, coll]) => {
-                let replacements = LIMIT_COLLECTION_TO_REPO[collname];
+                let replacements = LIMITS[limit.limitType][collname];
                 if (replacements) {
                     Object.entries(replacements).forEach(([method, fixQuery]) => {
                         let orig = coll[method];
@@ -322,15 +333,15 @@ function runWidgets(options, repo) {
                             let nargs = Array.prototype.slice.call(arguments);
                             let argIndex = 0;
                             if (method == "distinct") { argIndex = 1; } // bit of a hack, this.
-                            nargs[argIndex] = fixQuery(repo, nargs[argIndex]);
-                            console.log(repo, collname, method, util.inspect(nargs, {depth:null}));
+                            nargs[argIndex] = fixQuery(limit.value, nargs[argIndex]);
+                            //console.log(limit.value, collname, method, util.inspect(nargs, {depth:null}));
                             return orig.apply(coll, nargs);
                         }
                     })
                 }
             })
 
-            var in_params = {db: colldict, templates: options.templates, "repo": repo};
+            var in_params = {db: colldict, templates: options.templates};
             async.map(options.widgets, function(widget, done) {
                 widget.module(in_params, function(err, result) {
                     if (err) {
@@ -341,7 +352,7 @@ function runWidgets(options, repo) {
                 });
             }, function(err, results) {
                 var htmls = results.filter(h => !!h);
-                return resolve(Object.assign({htmls: htmls, repo: repo}, options));
+                return resolve(Object.assign({htmls: htmls, limit: limit}, options));
             })
         });
     });
@@ -354,9 +365,9 @@ function assembleDashboard(options) {
     file as defined in the config.
     */
     return new Promise((resolve, reject) => {
-        options.templates.dashboard({widgets: options.htmls, subtitle: options.repo}, (err, output) => {
+        options.templates.dashboard({widgets: options.htmls, subtitle: options.limit.value}, (err, output) => {
             if (err) return reject(err);
-            const outputSlug = options.repo.replace("/", "--") + "-index.html";
+            const outputSlug = options.limit.value.replace("/", "--") + "-index.html";
             const outputFile = path.join(options.userConfig.output_directory, outputSlug);
             options.outputFile = outputFile; options.outputSlug = outputSlug;
             fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
@@ -404,7 +415,30 @@ function leave(options) {
 
 function dashboardForEachRepo(options) {
     var dashboardMakers = options.userConfig.github_repositories.map(repo => {
-        return runWidgets(options, repo)
+        return runWidgets(options, {limitType: "repo", value: repo})
+            .then(assembleDashboard);
+    });
+    return Promise.all(dashboardMakers)
+        .then(function(arrayOfOptions) {
+            var optionsBase = Object.assign({}, arrayOfOptions[0]);
+            var repo_output_pairs = [];
+            arrayOfOptions.forEach(function(o) {
+                repo_output_pairs.push({
+                    repo: o.repo,
+                    outputSlug: o.outputSlug,
+                    outputFile: o.outputFile
+                })
+            })
+            delete optionsBase.repo;
+            delete optionsBase.outputFile;
+            optionsBase.repo_output_pairs = repo_output_pairs;
+            return optionsBase;
+        });
+}
+
+function dashboardForEachContributor(options) {
+    var dashboardMakers = options.userConfig.github_repositories.map(repo => {
+        return runWidgets(options, {limitType: "repo", value: repo})
             .then(assembleDashboard);
     });
     return Promise.all(dashboardMakers)
@@ -430,6 +464,7 @@ loadTemplates()
     .then(readConfig)
     .then(connectToDB)
     .then(dashboardForEachRepo)
+    .then(dashboardForEachContributor)
     .then(frontPage)
     .then(leave)
     .catch(e => {

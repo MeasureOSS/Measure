@@ -7,6 +7,7 @@ const mu = require('mu2');
 const yaml = require('js-yaml');
 const wrap = require('word-wrap');
 const util = require('util');
+const glob = require('glob');
 const entries = require('object.entries');
 if (!Object.entries) { entries.shim(); }
 
@@ -27,7 +28,7 @@ function loadTemplates() {
     Realistically, widgets use these by name, so just adding a new one to be
     dynamically picked up doesn't buy us much.
     */
-    const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front"];
+    const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", "table"];
 
     return new Promise((resolve, reject) => {
         /*
@@ -105,15 +106,17 @@ function loadWidgets(options) {
     */
     return new Promise((resolve, reject) => {
         var pth = path.join(__dirname, "widgets");
-        fs.readdir(pth, function onRead(err, files) {
+        glob(pth + "/*/*.js", function(err, files) {
             if (err) { return reject(err); }
             async.map(files, function(fn, done) {
                 var mod_details;
                 try {
-                    var name = fn.replace(/\.js$/,'');
+                    var parts = fn.split("/");
+                    var name = parts[parts.length-1].replace(/\.js$/,'');
                     mod_details = {
-                        module: require(path.join(pth, fn)),
-                        name: name
+                        module: require(fn),
+                        name: name,
+                        widgetType: parts[parts.length-2]
                     };
                 } catch(e) {
                     console.warn("Skipping ill-formed widget", fn, e);
@@ -123,8 +126,13 @@ function loadWidgets(options) {
             }, function(err, mods) {
                 if (err) { return reject(err); }
                 var valid_mods = mods.filter(m => !!m);
-                //console.log("Loaded " + valid_mods.length + " widgets");
-                return resolve(Object.assign({widgets: valid_mods}, options));
+                var m2 = {};
+                valid_mods.forEach(function(vm) {
+                    if (!m2[vm.widgetType]) { m2[vm.widgetType] = []; }
+                    m2[vm.widgetType].push(vm);
+                })
+                //console.log("Loaded widgets", util.inspect(m2, {depth:null}));
+                return resolve(Object.assign({widgets: m2}, options));
             });
         });
     });
@@ -264,15 +272,37 @@ function readConfig(options) {
    query ({whatever:foo}). It is the monkeypatch's job to return a new dict, to be used instead of
    "existing", which does whatever "existing" does PLUS also limits the query to only those documents
    matching the repo name that was passed in. */
+const LIMITS_MATCH = (regexp_value, existing, fieldname) => {
+    const matcher = {};
+    matcher[fieldname] = {$regex: new RegExp(regexp_value, "i")}
+    return { $and: [ existing, matcher ] }
+}
 const LIMITS = {
-    repo:{
+    contributor: {
+        user: {
+            find: (u,e) => { return {$and: [e, {login: u}]} }
+        },
+        pull_request: {
+            find: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            count: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} }
+        },
         issue: {
-            find: (repo, existing) => {return {$and: [existing, {
-                repository_url: {$regex: new RegExp(repo + "$", "i")}}]}},
-            count: (repo, existing) => {return {$and: [existing, {
-                repository_url: {$regex: new RegExp(repo + "$", "i")}}]}},
-            distinct: (repo, existing) => {return {$and: [existing, {
-                repository_url: {$regex: new RegExp(repo + "$", "i")}}]}},
+            find: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            count: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} }
+        },
+        issue_comment: {
+            find: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            count: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} }
+        }
+    },
+    repo: {
+        issue: {
+            find: (r,e) => { return LIMITS_MATCH(r + "$", e, "repository_url") },
+            count: (r,e) => { return LIMITS_MATCH(r + "$", e, "repository_url") },
+            distinct: (r,e) => { return LIMITS_MATCH(r + "$", e, "repository_url") },
             aggregate: (repo, existing) => {
                 var nexisting = existing.slice();
                 nexisting.unshift({$match: {repository_url: {$regex: new RegExp(repo + "$", "i")}}});
@@ -280,12 +310,9 @@ const LIMITS = {
             }
         },
         issue_comment: {
-            find: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$", "i")}}]}},
-            count: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$", "i")}}]}},
-            distinct: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$", "i")}}]}},
+            find: (r,e) => { return LIMITS_MATCH(r + "/issues/comments/[0-9]+$", e, "url") },
+            count: (r,e) => { return LIMITS_MATCH(r + "/issues/comments/[0-9]+$", e, "url") },
+            distinct: (r,e) => { return LIMITS_MATCH(r + "/issues/comments/[0-9]+$", e, "url") },
             aggregate: (repo, existing) => {
                 var nexisting = existing.slice();
                 nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/issues/comments/[0-9]+$", "i")}}});
@@ -294,12 +321,9 @@ const LIMITS = {
         },
         pull_request: {
             // pull requests in the data don't link directly to their repo, so parse their url
-            find: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$", "i")}}]}},
-            count: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$", "i")}}]}},
-            distinct: (repo, existing) => {return {$and: [existing, {
-                url: {$regex: new RegExp(repo + "/pulls/[0-9]+$", "i")}}]}},
+            find: (r,e) => { return LIMITS_MATCH(r + "/pulls/[0-9]+$", e, "url") },
+            count: (r,e) => { return LIMITS_MATCH(r + "/pulls/[0-9]+$", e, "url") },
+            distinct: (r,e) => { return LIMITS_MATCH(r + "/pulls/[0-9]+$", e, "url") },
             aggregate: (repo, existing) => {
                 var nexisting = existing.slice();
                 nexisting.unshift({$match: {url: {$regex: new RegExp(repo + "/pulls/[0-9]+$", "i")}}});
@@ -316,6 +340,7 @@ function runWidgets(options, limit) {
     some HTML which it can generate any way it likes.
     */
     return new Promise((resolve, reject) => {
+        var mylimit = Object.assign({}, limit);
         options.db.collections((err, colls) => {
             if (err) { return reject(err); }
             var colldict = {};
@@ -325,7 +350,7 @@ function runWidgets(options, limit) {
 
             // Monkeypatch the find, count, and aggregate functions
             Object.entries(colldict).forEach(([collname, coll]) => {
-                let replacements = LIMITS[limit.limitType][collname];
+                let replacements = LIMITS[mylimit.limitType][collname];
                 if (replacements) {
                     Object.entries(replacements).forEach(([method, fixQuery]) => {
                         let orig = coll[method];
@@ -334,7 +359,7 @@ function runWidgets(options, limit) {
                             let argIndex = 0;
                             if (method == "distinct") { argIndex = 1; } // bit of a hack, this.
                             nargs[argIndex] = fixQuery(limit.value, nargs[argIndex]);
-                            //console.log(limit.value, collname, method, util.inspect(nargs, {depth:null}));
+                            //console.log(mylimit.value, collname, method, util.inspect(nargs, {depth:null}));
                             return orig.apply(coll, nargs);
                         }
                     })
@@ -342,17 +367,21 @@ function runWidgets(options, limit) {
             })
 
             var in_params = {db: colldict, templates: options.templates};
-            async.map(options.widgets, function(widget, done) {
+            async.map(options.widgets[mylimit.limitType], function(widget, done) {
                 widget.module(in_params, function(err, result) {
                     if (err) {
                         console.error(NICE_ERRORS.WIDGET_ERROR(err, widget).message);
                         return done();
                     }
-                    return done(null, {html: result, widget: widget.name});
+                    var details = {html: result, extraClasses:widget.module.extraClasses, widget: widget.name, limit: limit};
+                    return done(null, details);
                 });
             }, function(err, results) {
                 var htmls = results.filter(h => !!h);
-                return resolve(Object.assign({htmls: htmls, limit: limit}, options));
+                var result = Object.assign({}, options);
+                result.limit = mylimit;
+                result.htmls = htmls;
+                return resolve(result);
             })
         });
     });
@@ -367,7 +396,7 @@ function assembleDashboard(options) {
     return new Promise((resolve, reject) => {
         options.templates.dashboard({widgets: options.htmls, subtitle: options.limit.value}, (err, output) => {
             if (err) return reject(err);
-            const outputSlug = options.limit.value.replace("/", "--") + "-index.html";
+            const outputSlug = options.limit.limitType + "-" + options.limit.value.replace("/", "--") + ".html";
             const outputFile = path.join(options.userConfig.output_directory, outputSlug);
             options.outputFile = outputFile; options.outputSlug = outputSlug;
             fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
@@ -415,7 +444,7 @@ function leave(options) {
 
 function dashboardForEachRepo(options) {
     var dashboardMakers = options.userConfig.github_repositories.map(repo => {
-        return runWidgets(options, {limitType: "repo", value: repo})
+        return runWidgets(Object.assign({}, options), {limitType: "repo", value: repo})
             .then(assembleDashboard);
     });
     return Promise.all(dashboardMakers)
@@ -437,29 +466,17 @@ function dashboardForEachRepo(options) {
 }
 
 function dashboardForEachContributor(options) {
-    return options.db.user.find({}).toArray().then(users => {
-
-    })
-    var dashboardMakers = options.userConfig.github_repositories.map(repo => {
-        return runWidgets(options, {limitType: "repo", value: repo})
-            .then(assembleDashboard);
-    });
-    return Promise.all(dashboardMakers)
-        .then(function(arrayOfOptions) {
-            var optionsBase = Object.assign({}, arrayOfOptions[0]);
-            var repo_output_pairs = [];
-            arrayOfOptions.forEach(function(o) {
-                repo_output_pairs.push({
-                    repo: o.repo,
-                    outputSlug: o.outputSlug,
-                    outputFile: o.outputFile
-                })
-            })
-            delete optionsBase.repo;
-            delete optionsBase.outputFile;
-            optionsBase.repo_output_pairs = repo_output_pairs;
-            return optionsBase;
+    return options.db.collection("user").find({}, {login:1}).toArray().then(users => {
+        var userMakers = users.map(u => {
+            return runWidgets(Object.assign({}, options), {limitType: "contributor", value: u.login})
+                .then(assembleDashboard);
         });
+        return Promise.all(userMakers)
+            .then(function(arrayOfOptions) {
+                var optionsBase = Object.assign({}, arrayOfOptions[0]);
+                return optionsBase;
+            });
+    })
 }
 
 loadTemplates()
@@ -467,7 +484,7 @@ loadTemplates()
     .then(readConfig)
     .then(connectToDB)
     .then(dashboardForEachRepo)
-    //.then(dashboardForEachContributor)
+    .then(dashboardForEachContributor)
     .then(frontPage)
     .then(leave)
     .catch(e => {

@@ -1,6 +1,6 @@
 {{> header.tmpl}}
                 {{#widgets}}
-                <article data-widget="{{widget}}">
+                <article data-widget="{{widget}}"{{#extraClasses}} class="{{extraClasses}}"{{/extraClasses}}>
                     {{{html}}}
                 </article>
                 {{/widgets}}

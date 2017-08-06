@@ -161,6 +161,8 @@ article {
     flex: 0 1 25%;
 }
 
+article.wide { flex: 0 1 50%; }
+
 h1 {
     font-weight: 100;
 }

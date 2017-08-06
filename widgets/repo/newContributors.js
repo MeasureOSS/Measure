@@ -19,7 +19,7 @@ module.exports = function(options, callback) {
                     var result = {
                         title: "New contributors",
                         list: newUsers.map(u => { 
-                            return {html: '<a href="https://github.com/' + u + '">' + u + '</a>'}; 
+                            return {html: '<a href="contributor-' + u + '.html">' + u + '</a>'}; 
                         })
                     }
                     options.templates.list(result, callback);

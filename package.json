@@ -11,6 +11,7 @@
   "dependencies": {
     "async": "^2.5.0",
     "fs-extra": "^3.0.1",
+    "glob": "^7.1.2",
     "js-yaml": "^3.8.4",
     "moment": "^2.18.1",
     "mongo-trigger": "^0.1.5",

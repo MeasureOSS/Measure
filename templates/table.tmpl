@@ -1,0 +1,21 @@
+<section class="table">
+<h1>{{title}}</h1>
+<table>
+<thead>
+<tr>{{#columns}}<th>{{name}}</th>{{/columns}}</tr>
+</thead>
+<tbody>
+{{#rows}}
+<tr>
+    {{#cells}}
+    {{#link}}
+    <td><a href="{{link}}">{{text}}</a></td>
+    {{/link}}
+    {{^link}}
+    <td>{{text}}</td>
+    {{/link}}
+    {{/cells}}
+</tr>
+{{/rows}}
+</table>
+</section>

@@ -159,6 +159,9 @@ article {
     position: relative;
     padding-top: 3.5em;
     flex: 0 1 25%;
+    max-height: 30em;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 article.wide { flex: 0 1 50%; }
@@ -207,6 +210,10 @@ section.list ul {
     padding: 0;
 }
 
+section.table td {
+    padding: 3px;
+}
+
 section.bignumber {
     text-align: center;
 }
@@ -227,6 +234,14 @@ section.bignumber hr {
     opacity: 0.3;
 }
 
+section.dl dd {
+    color: white;
+    margin: 0 0 2px 0;
+}
+section.dl dt {
+    font-size: 70%;
+    line-height: 1;
+}
 ul.repolist {
     list-style: none;
 }

@@ -28,7 +28,7 @@ function loadTemplates() {
     Realistically, widgets use these by name, so just adding a new one to be
     dynamically picked up doesn't buy us much.
     */
-    const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", "table"];
+    const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", "table", "dl"];
 
     return new Promise((resolve, reject) => {
         /*

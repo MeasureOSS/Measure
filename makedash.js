@@ -12,6 +12,10 @@ const entries = require('object.entries');
 if (!Object.entries) { entries.shim(); }
 
 var db;
+// mongo collections used by widgets.
+// get this list with:
+// egrep -oh 'options.db.[a-z_]+' widgets/*/*.js | sed 's/options.db.//g' | sort | uniq
+var EXPECTED_COLLECTIONS = ["issue", "issue_comment", "pull_request", "user"];
 
 /*
 The way the dashboard is created is this: we have a collection of "widgets",
@@ -219,7 +223,12 @@ const NICE_ERRORS = {
         should be reported.
         
         \n\n(The error is described like this, which will help in the report:
-        "${e.message}, ${e.stack}".)`)
+        "${e.message}, ${e.stack}".)`),
+    MISSING_COLLECTIONS: (missing) => new NiceError("DBError",
+        `We seem to be missing some collections of data about repositories
+        and issues. The missing collections are named: ${missing.join(', ')}.
+        To fix this, try re-running the crawler (for now; we'll handle this
+        better later.)`)
 }
 
 function readConfig(options) {
@@ -347,6 +356,11 @@ function runWidgets(options, limit) {
             colls.forEach(c => {
                 colldict[c.collectionName] = c;
             })
+
+            var missing = EXPECTED_COLLECTIONS.filter(c => { return !colldict[c] });
+            if (missing.length > 0) {
+                return reject(NICE_ERRORS.MISSING_COLLECTIONS(missing));
+            }
 
             // Monkeypatch the find, count, and aggregate functions
             Object.entries(colldict).forEach(([collname, coll]) => {

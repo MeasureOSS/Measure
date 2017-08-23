@@ -510,9 +510,7 @@ function api(options) {
             options.sqliteDatabase = options.userConfig.database_directory + "/admin.db";
             var rel = path.relative(options.userConfig.output_directory,
                 options.sqliteDatabase);
-            if (rel == "admin.db") rel = "./admin.db";
-            var dsn = "sqlite://" + rel;
-            data = data.replace("$dsn = '';", "$dsn = '" + dsn + "';")
+            data = data.replace("$dsn = '';", "$dsn = 'sqlite://' . dirname(__FILE__) . '/" + rel + "';")
             const outputFile = path.join(options.userConfig.output_directory, "api.php");
             fs.writeFile(outputFile, data, {encoding: "utf8"}, err => {
                 if (err) {

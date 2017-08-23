@@ -6,3 +6,7 @@ github_repositories:
 # List here the directory where you want the dashboard HTML file
 # to be written. If this directory doesn't exist, it will be created.
 output_directory: dashboard
+
+# List here the directory where you want the admin database
+# to be written. If this directory doesn't exist, it will be created.
+database_directory: dashboard

@@ -8,6 +8,7 @@ const yaml = require('js-yaml');
 const wrap = require('word-wrap');
 const util = require('util');
 const glob = require('glob');
+const sqlite3 = require('sqlite3');
 const entries = require('object.entries');
 if (!Object.entries) { entries.shim(); }
 
@@ -32,7 +33,8 @@ function loadTemplates() {
     Realistically, widgets use these by name, so just adding a new one to be
     dynamically picked up doesn't buy us much.
     */
-    const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", "table", "dl"];
+    const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", 
+        "table", "dl", "notes"];
 
     return new Promise((resolve, reject) => {
         /*
@@ -165,7 +167,7 @@ attempt to make things easier to use.
 function NiceError(name, message) {
     this.message = wrap(
         message.replace(/\n +/g, ' ') || 'Badly created nice error', 
-        {width: 70}
+        {width: 65}
     );
     this.stack = (new Error()).stack;
     this.isNiceError = true;
@@ -207,13 +209,49 @@ const NICE_ERRORS = {
         \noutput_directory: /path/to/dashboard`),
     BAD_OUTPUT_DIR_CONFIGURED: (e, fn, od) => new NiceError("OutputDirectoryError",
         `I couldn't understand the configuration file "${fn}". The output directory
-        is set to ${od}, but I couldn't use that directory.
+        is set to "${od}" but I couldn't use that directory.
+
+        \n\n(The error is described like this, which may not be helpful:
+        "${e}".)`),
+    NO_DATABASE_DIR_CONFIGURED: (fn) => new NiceError("NoDatabaseDirectoryError",
+        `I couldn't understand the configuration file "${fn}". The database directory
+        doesn't seem to be set correctly: it needs to be a path to a directory where
+        the dashboard will be created.`),
+    NONSTRING_DATABASE_DIR_CONFIGURED: (fn) => new NiceError("NoDatabaseDirectoryError",
+        `I couldn't understand the configuration file "${fn}". The database directory
+        doesn't seem to be set correctly: it needs to be a path to a directory where
+        the dashboard will be created, and a single string, not an array. The line
+        in ${fn} should look like this:
+
+        \ndatabase_directory: dashboard
+        \nor
+        \ndatabase_directory: /path/to/dashboardfolder`),
+    BAD_DATABASE_DIR_CONFIGURED: (e, fn, od) => new NiceError("DatabaseDirectoryError",
+        `I couldn't understand the configuration file "${fn}". The database directory
+        is set to "${od}", but I couldn't use that directory.
         
         \n\n(The error is described like this, which may not be helpful:
         "${e}".)`),
     COULD_NOT_WRITE_OUTPUT: (e, ofn) => new NiceError("OutputWriteError",
         `I couldn't write the dashboard output file. I was trying to write it to
         ${ofn}, but that didn't work, so I'm giving up.
+        
+        \n\n(The error is described like this, which may not be helpful:
+        "${e}".)`),
+    COULD_NOT_WRITE_API: (e, ofn) => new NiceError("APIWriteError",
+        `I couldn't write the dashboard's admin API PHP script. I was trying to write it to
+        ${ofn}, but that didn't work, so I'm giving up.
+        
+        \n\n(The error is described like this, which may not be helpful:
+        "${e}".)`),
+    COULD_NOT_OPEN_DB: (e, ofn) => new NiceError("DBCreateError",
+        `I couldn't create the dashboard's admin database. I was trying to write it to
+        ${ofn}, but that didn't work, so I'm giving up.
+        
+        \n\n(The error is described like this, which may not be helpful:
+        "${e}".)`),
+    COULD_NOT_CREATE_TABLES: (e, ofn) => new NiceError("DBCreateTableError",
+        `I couldn't set up the dashboard's admin database, so I'm giving up.
         
         \n\n(The error is described like this, which may not be helpful:
         "${e}".)`),
@@ -255,23 +293,38 @@ function readConfig(options) {
         if (typeof doc.output_directory !== "string") {
             return reject(NICE_ERRORS.NONSTRING_OUTPUT_DIR_CONFIGURED(config_file_name, doc.output_directory));
         }
-        try {
-            var ods = fs.statSync(doc.output_directory);
-            return resolve(Object.assign({userConfig: doc}, options));
-        } catch(e) {
-            if (e.code === "ENOENT") {
-                fs.ensureDir(doc.output_directory, e => {
-                    if (e) {
-                        return reject(NICE_ERRORS.BAD_OUTPUT_DIR_CONFIGURED(e, 
-                            config_file_name, doc.output_directory));
-                    }
-                    return resolve(Object.assign({userConfig: doc}, options));
-                })
-            } else {
-                return reject(NICE_ERRORS.BAD_OUTPUT_DIR_CONFIGURED(e, config_file_name, doc.output_directory));
+        if (!doc.database_directory) {
+            return reject(NICE_ERRORS.NO_DATABASE_DIR_CONFIGURED(config_file_name));
+        }
+        if (typeof doc.database_directory !== "string") {
+            return reject(NICE_ERRORS.NONSTRING_DATABASE_DIR_CONFIGURED(config_file_name, doc.database_directory));
+        }
+
+        function make_exist(dir) {
+            try {
+                var ods = fs.statSync(dir);
+            } catch(e) {
+                if (e.code === "ENOENT") {
+                    fs.ensureDirSync(dir);
+                }
             }
         }
-    })
+
+        try {
+            make_exist(doc.output_directory);
+        } catch(e) {
+            return reject(NICE_ERRORS.BAD_OUTPUT_DIR_CONFIGURED(e, 
+                config_file_name, doc.output_directory));
+        }
+        try {
+            make_exist(doc.database_directory);
+        } catch(e) {
+            return reject(NICE_ERRORS.BAD_DATABASE_DIR_CONFIGURED(e, 
+                config_file_name, doc.output_directory));
+        }
+
+        return resolve(Object.assign({userConfig: doc}, options));
+    });
 }
 
 /* These are basically monkeypatches. The top level keys are collections; inside that are methods.
@@ -450,6 +503,48 @@ function frontPage(options) {
     });
 }
 
+
+function api(options) {
+    return new Promise((resolve, reject) => {
+        fs.readFile("arrestdb.php", {encoding: "utf-8"}, (err, data) => {
+            options.sqliteDatabase = options.userConfig.database_directory + "/admin.db";
+            var rel = path.relative(options.userConfig.output_directory,
+                options.sqliteDatabase);
+            if (rel == "admin.db") rel = "./admin.db";
+            var dsn = "sqlite://" + rel;
+            data = data.replace("$dsn = '';", "$dsn = '" + dsn + "';")
+            const outputFile = path.join(options.userConfig.output_directory, "api.php");
+            fs.writeFile(outputFile, data, {encoding: "utf8"}, err => {
+                if (err) {
+                    return reject(NICE_ERRORS.COULD_NOT_WRITE_API(err, outputFile));
+                }
+                return resolve(options);
+            });
+        })
+    });
+}
+
+const tableDefinitions = [
+    "notes (id INTEGER PRIMARY KEY, login TEXT, note TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)"
+];
+function apidb(options) {
+    return new Promise((resolve, reject) => {
+        var sqlite3 = require('sqlite3').verbose();
+        var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
+            if (err) return reject(NICE_ERRORS.COULD_NOT_OPEN_DB(err, options.sqliteDatabase));
+            async.each(tableDefinitions, (td, done) => {
+                db.run("CREATE TABLE IF NOT EXISTS " + td, [], done);
+            }, (err) => {
+                if (err) {
+                    return reject(NICE_ERRORS.COULD_NOT_CREATE_TABLES(err));
+                }
+                db.close();
+                return resolve(options);
+            })
+        });
+    });
+}
+
 function leave(options) {
     /* And shut all our stuff down. Don't close down ghcrawler itself. */
     options.db.close();
@@ -500,6 +595,8 @@ loadTemplates()
     .then(dashboardForEachRepo)
     .then(dashboardForEachContributor)
     .then(frontPage)
+    .then(api)
+    .then(apidb)
     .then(leave)
     .catch(e => {
         if (db) db.close();

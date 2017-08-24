@@ -1,7 +1,7 @@
 var API = (function() {
     function xhr(method, url, body, headers, done) {
         var x = new XMLHttpRequest();
-        x.open(method, url, true);
+        x.open(method, BASE_API_URL + "/" + url, true);
         if (headers) {
             for (var k in headers) {
                 x.setRequestHeader(k, headers[k]);
@@ -36,18 +36,18 @@ var API = (function() {
             .join('&');
     }
     function get(table, column, value, queryOptions, done) {
-        var url = "api.php/" + encodeURIComponent(table);
+        var url = encodeURIComponent(table);
         if (column != "" && value != "" && column && value) url += "/" + encodeURIComponent(column) + "/" + encodeURIComponent(value);
         var qs = encodeQS(queryOptions);
         if (qs.length > 0) url += "?" + qs;
         xhr("GET", url, null, null, done);
     }
     function post(table, fields_and_values, done) {
-        var url = "api.php/" + encodeURIComponent(table) + "/";
+        var url = encodeURIComponent(table) + "/";
         xhr("POST", url, encodeQS(fields_and_values), {"Content-Type": "application/x-www-form-urlencoded"}, done);
     }
     function _delete(table, id, done) {
-        var url = "api.php/" + encodeURIComponent(table) + "/" + encodeURIComponent(id);
+        var url = encodeURIComponent(table) + "/" + encodeURIComponent(id);
         xhr("DELETE", url, {}, null, done);
     }
 
@@ -68,9 +68,36 @@ var API = (function() {
     }
 })();
 
-function flash(message) {
-    console.log("flash message:", message);
-}
+var flash = (function() {
+    var fm = document.getElementById("flash_messages");
+    var p = document.createElement("p")
+    var ul = document.createElement("ul");
+    var btn = document.createElement("button");
+    btn.appendChild(document.createTextNode("☰"));
+    fm.appendChild(btn);
+    fm.appendChild(p);
+    fm.appendChild(ul);
+    btn.onclick = function() { ul.style.display = "block"; }
+    ul.onclick = function() { ul.style.display = "none"; }
+    function f(message, err) {
+        if (err) console.error(err);
+        p.textContent = message;
+        p.className = "showing";
+        var dt = (new Date()).toLocaleTimeString();
+        var removeTimer = setTimeout(function() {
+            p.className = "";
+            p.innerHTML = "";
+            var li = document.createElement("li");
+            li.appendChild(document.createTextNode("[" + dt + "] " + message));
+            if (ul.childNodes.length == 0) {
+                ul.appendChild(li);
+            } else {
+                ul.insertBefore(li, ul.firstChild);
+            }
+        }, 2000);
+    }
+    return f;
+})();
 
 Array.prototype.slice.call(document.querySelectorAll("section.notes")).forEach(function(ns) {
     var login = ns.getAttribute("data-login");
@@ -87,7 +114,7 @@ Array.prototype.slice.call(document.querySelectorAll("section.notes")).forEach(f
                 a.href = "#";
                 a.onclick = function() {
                     API.delete("notes", n.id, function(err) {
-                        if (err) return flash(err);
+                        if (err) return flash("Couldn't delete note", err);
                         updateNotes();
                     })
                 }
@@ -103,8 +130,8 @@ Array.prototype.slice.call(document.querySelectorAll("section.notes")).forEach(f
     ns.querySelector("button").onclick = function() {
         var n = prompt("Add a note?");
         if (n) {
-            API.post("notes", {login: login, note: n}, function(err) {
-                if (err) { return flash(err); }
+            API.post("notes", {fail: "fail", login: login, note: n}, function(err) {
+                if (err) { return flash("Couldn't save note", err); }
                 updateNotes();
             })
         }

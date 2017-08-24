@@ -119,10 +119,17 @@ function loadWidgets(options) {
                 try {
                     var parts = fn.split("/");
                     var name = parts[parts.length-1].replace(/\.js$/,'');
+                    var index = "99";
+                    var mm = name.match(/^([0-9]+)_(.*)$/);
+                    if (mm) {
+                        index = mm[1];
+                        name = mm[2];
+                    }
                     mod_details = {
                         module: require(fn),
                         name: name,
-                        widgetType: parts[parts.length-2]
+                        widgetType: parts[parts.length-2],
+                        index: index
                     };
                 } catch(e) {
                     console.warn("Skipping ill-formed widget", fn, e);

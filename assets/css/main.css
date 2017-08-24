@@ -246,9 +246,58 @@ ul.repolist {
     list-style: none;
 }
 
+#flash_messages {
+    position: absolute;
+    top: 50px;
+    left: 10%;
+    right: 10%;
+    z-index: 2;
+}
 
+#flash_messages button {
+    border-width: 0;
+    background: transparent;
+    color: #ff7;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
 
+#flash_messages p {
+    opacity: 0;
+    transform: scale(0.05);
+    transform-origin: 100% 0;
+    transition: all 250ms ease-out;
+    border-radius: 12px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    min-height: 4em;
+}
 
+#flash_messages p.showing {
+    background: #ff7;
+    color: black;
+    margin: auto;
+    padding: 1em;
+    opacity: 0.8;
+    transform: scale(1);
+}
+
+#flash_messages ul {
+    position: absolute;
+    width: 100%;
+    top: 0;
+    right: 0;
+    margin: 0;
+    border: 5px solid rgba(0,0,0,0.5);
+    background: white;
+    color: black;
+    display: none;
+    max-height: 50vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
 
 
 

@@ -19,7 +19,7 @@ module.exports = function(options, callback) {
                     var result = {
                         title: "New contributors",
                         list: newUsers.map(u => { 
-                            return {html: '<a href="contributor-' + u + '.html">' + u + '</a>'}; 
+                            return {html: '<a href="' + options.url("contributor", u) + '">' + u + '</a>'}; 
                         })
                     }
                     options.templates.list(result, callback);

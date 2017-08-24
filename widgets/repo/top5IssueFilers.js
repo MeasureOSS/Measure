@@ -7,7 +7,7 @@ module.exports = function(options, callback) {
         var result = {
             title: "Top 5 issue filers",
             list: res.slice(0,5).map(l => { 
-                return {html: '<a href="contributor-' + l._id + '.html">' + l._id + '</a>'}; 
+                return {html: '<a href="' + options.url("contributor", l._id) + '">' + l._id + '</a>'}; 
             })
         }
         options.templates.list(result, callback);

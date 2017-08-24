@@ -395,6 +395,15 @@ const LIMITS = {
     }
 }
 
+function url_lookup(user_collection_name, key) {
+    switch(user_collection_name) {
+        case "contributor":
+            return "$$BASEURL$$/contributor/" + key + ".html";
+        case "repo":
+            return "$$BASEURL$$/repo/" + key + ".html";
+    }
+}
+
 function runWidgets(options, limit) {
     /*
     For each of our loaded widgets, we pass it the database connection information
@@ -433,7 +442,7 @@ function runWidgets(options, limit) {
                 }
             })
 
-            var in_params = {db: colldict, templates: options.templates};
+            var in_params = {db: colldict, templates: options.templates, url: url_lookup};
             async.map(options.widgets[mylimit.limitType], function(widget, done) {
                 widget.module(in_params, function(err, result) {
                     if (err) {
@@ -454,6 +463,12 @@ function runWidgets(options, limit) {
     });
 }
 
+function fixOutputLinks(output, outputFile, options) {
+    var rel = path.relative(path.dirname(outputFile), options.userConfig.output_directory);
+    if (rel != "") rel += "/";
+    return output.replace(/\$\$BASEURL\$\$\//g, rel);
+}
+
 function assembleDashboard(options) {
     /*
     Pass all the collected HTML outputs from the widgets to the dashboard
@@ -463,9 +478,13 @@ function assembleDashboard(options) {
     return new Promise((resolve, reject) => {
         options.templates.dashboard({widgets: options.htmls, subtitle: options.limit.value}, (err, output) => {
             if (err) return reject(err);
-            const outputSlug = options.limit.limitType + "-" + options.limit.value.replace("/", "--") + ".html";
+            //const outputSlug = options.limit.limitType + "-" + options.limit.value.replace("/", "--") + ".html";
+            const outputSlug = options.limit.limitType + "/" + options.limit.value + ".html";
             const outputFile = path.join(options.userConfig.output_directory, outputSlug);
+            const outputDir = path.dirname(outputFile);
+            fs.ensureDirSync(outputDir);
             options.outputFile = outputFile; options.outputSlug = outputSlug;
+            output = fixOutputLinks(output, outputFile, options);
             fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
                 if (err) {
                     return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
@@ -478,16 +497,17 @@ function assembleDashboard(options) {
 
 function frontPage(options) {
     return new Promise((resolve, reject) => {
-        let links = options.repo_output_pairs.map(op => {
+        let links = options.userConfig.github_repositories.map(op => {
             return {
-                link: op.outputSlug,
-                title: op.repo
+                link: url_lookup("repo", op),
+                title: op
             }
         })
         options.templates.front({links: links}, (err, output) => {
             if (err) return reject(err);
             const outputFile = path.join(options.userConfig.output_directory, "index.html");
             const outputAssets = path.join(options.userConfig.output_directory, "assets");
+            output = fixOutputLinks(output, outputFile, options);
             fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
                 if (err) {
                     return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
@@ -547,6 +567,7 @@ function leave(options) {
     /* And shut all our stuff down. Don't close down ghcrawler itself. */
     options.db.close();
     console.log(`Dashboards generated OK in directory '${options.userConfig.output_directory}'.`);
+    console.log(`Database ensured in directory '${options.userConfig.database_directory}'.`);
 }
 
 function dashboardForEachRepo(options) {

@@ -118,7 +118,7 @@ Array.prototype.slice.call(document.querySelectorAll("section.notes")).forEach(f
                         updateNotes();
                     })
                 }
-                li.appendChild(document.createTextNode(n.note));
+                li.appendChild(document.createTextNode(n.note + " "));
                 li.appendChild(a);
                 frag.appendChild(li);
             })
@@ -130,7 +130,7 @@ Array.prototype.slice.call(document.querySelectorAll("section.notes")).forEach(f
     ns.querySelector("button").onclick = function() {
         var n = prompt("Add a note?");
         if (n) {
-            API.post("notes", {fail: "fail", login: login, note: n}, function(err) {
+            API.post("notes", {login: login, note: n}, function(err) {
                 if (err) { return flash("Couldn't save note", err); }
                 updateNotes();
             })

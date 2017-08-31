@@ -269,6 +269,11 @@ ArrestDB::Serve('POST', '/(#any)', function ($table)
 			$result = ArrestDB::$HTTP[409];
 		}
 
+		else if (is_a($result, "Exception")) {
+			$result = ArrestDB::$HTTP[500];
+			$result['exception'] = $result->getMessage();
+		}
+
 		else
 		{
 			$result = ArrestDB::$HTTP[201];

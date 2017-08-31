@@ -20,7 +20,7 @@ var fn = function(options, callback) {
         if (rnlist.length == 0) { return callback(); }
         rnlist.sort();
         var result = {
-            title: "Repositories",
+            title: "Repos contributed to",
             list: rnlist.map(r => { 
                 return {html: '<a href="' + options.url("repo", r) + '">' + r + '</a>'}; 
             })

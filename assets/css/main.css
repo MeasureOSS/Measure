@@ -187,6 +187,7 @@ footer h3 {
     left: 5px;
     padding: 0;
     margin: 0;
+    color: #aa0;
 }
 header h1 a { text-decoration: none; }
 header h2 {
@@ -299,7 +300,9 @@ ul.repolist {
     overflow-x: hidden;
 }
 
-
+article a[href^="https://github.com"]::before {
+   content: "⬀ ";
+}
 
 
 

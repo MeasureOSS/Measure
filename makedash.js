@@ -330,6 +330,15 @@ function readConfig(options) {
                 config_file_name, doc.output_directory));
         }
 
+        // smash case on the org name of the repos
+        var nr = [];
+        doc.github_repositories.forEach(repo => {
+            var parts = repo.split("/");
+            var lcrepo = parts[0].toLowerCase() + "/" + parts[1];
+            nr.push(lcrepo);
+        })
+        doc.github_repositories = nr;
+
         return resolve(Object.assign({userConfig: doc}, options));
     });
 }
@@ -585,17 +594,8 @@ function dashboardForEachRepo(options) {
     return Promise.all(dashboardMakers)
         .then(function(arrayOfOptions) {
             var optionsBase = Object.assign({}, arrayOfOptions[0]);
-            var repo_output_pairs = [];
-            arrayOfOptions.forEach(function(o) {
-                repo_output_pairs.push({
-                    repo: o.limit.value,
-                    outputSlug: o.outputSlug,
-                    outputFile: o.outputFile
-                })
-            })
             delete optionsBase.repo;
             delete optionsBase.outputFile;
-            optionsBase.repo_output_pairs = repo_output_pairs;
             return optionsBase;
         });
 }

@@ -14,7 +14,7 @@ module.exports = function(options, callback) {
             var m = moment(r.merged_at);
             var my = c.format("YYYYMM");
             if (!byMonth[my]) byMonth[my] = [];
-            byMonth[my].push(m.diff(c, "seconds"));
+            byMonth[my].push(m.diff(c, "hours"));
             if (c < minMonth) { minMonth = c; }
         });
 

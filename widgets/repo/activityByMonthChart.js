@@ -1,5 +1,3 @@
-const moment = require("moment");
-
 module.exports = function(options, callback) {
     /* get issue counts by month */
     options.db.issue.aggregate([

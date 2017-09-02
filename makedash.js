@@ -9,6 +9,7 @@ const wrap = require('word-wrap');
 const util = require('util');
 const glob = require('glob');
 const sqlite3 = require('sqlite3');
+const StackTraceParser = require('stacktrace-parser');
 const entries = require('object.entries');
 if (!Object.entries) { entries.shim(); }
 
@@ -182,6 +183,11 @@ function NiceError(name, message) {
 NiceError.prototype = Object.create(Error.prototype);
 NiceError.prototype.constructor = NiceError;
 
+function renderStack(e) {
+    var st = StackTraceParser.parse(e.stack)[0];
+    var fn = st.file.replace(__dirname + "/", "");
+    return `${e.message}, ${fn}:${st.lineNumber}`;
+}
 const NICE_ERRORS = {
     NO_CONFIG_ERROR: fn => new NiceError("NoConfigFileError", 
         `I looked for the configuration file, "${fn}", and couldn't find
@@ -266,9 +272,9 @@ const NICE_ERRORS = {
         `One of the dashboard widgets ("${widget.name}") had a problem, 
         so I've skipped over it. This is really an internal error, and
         should be reported.
-        
-        \n\n(The error is described like this, which will help in the report:
-        "${e.message}, ${e.stack}".)`),
+        \n(The error is described like this, which will help in the report:
+        ${renderStack(e)})
+        \n\n`),
     MISSING_COLLECTIONS: (missing) => new NiceError("DBError",
         `We seem to be missing some collections of data about repositories
         and issues. The missing collections are named: ${missing.join(', ')}.
@@ -460,14 +466,19 @@ function runWidgets(options, limit) {
 
             var in_params = {db: colldict, templates: options.templates, url: url_lookup};
             async.map(options.widgets[mylimit.limitType], function(widget, done) {
-                widget.module(in_params, function(err, result) {
-                    if (err) {
-                        console.error(NICE_ERRORS.WIDGET_ERROR(err, widget).message);
-                        return done();
-                    }
-                    var details = {html: result, extraClasses:widget.module.extraClasses, widget: widget.name, limit: limit};
-                    return done(null, details);
-                });
+                try {
+                    widget.module(in_params, function(err, result) {
+                        if (err) {
+                            console.error(NICE_ERRORS.WIDGET_ERROR(err, widget).message);
+                            return done();
+                        }
+                        var details = {html: result, extraClasses:widget.module.extraClasses, widget: widget.name, limit: limit};
+                        return done(null, details);
+                    });
+                } catch(err) {
+                    console.error(NICE_ERRORS.WIDGET_ERROR(err, widget).message);
+                    return done();
+                }
             }, function(err, results) {
                 var htmls = results.filter(h => !!h);
                 var result = Object.assign({}, options);

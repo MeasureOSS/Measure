@@ -68,6 +68,23 @@ var API = (function() {
     }
 })();
 
+
+/* Linkable charts */
+Chart.plugins.register({
+    beforeInit: function(c) {
+        c.canvas.addEventListener("click", function(e) {
+            var el = c.getElementAtEvent(e);
+            if (el.length != 1) return;
+            el = el[0];
+            var ds = el._chart.config.data.datasets[el._datasetIndex];
+            if (!ds || !ds.links) return;
+            var link = ds.links[el._index];
+            if (link) { location.href = link; }
+        }, false);
+    }
+});
+
+
 /* Adjustable charts */
 Chart.plugins.register({
     beforeInit: function(c) {

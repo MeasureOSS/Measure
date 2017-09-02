@@ -16,24 +16,25 @@ function groupby(result, keyFormat, labelFormat, durationStep, linkBase) {
     var minGroup = moment(minGroup);
     var now = moment();
     var labels = [];
+    //https://github.com/DataDog/integrations-core/pulls?utf8=%E2%9C%93&q=is%3Apr%20is%3Aopen%20created%3A2016-04-30..2016-07-04%20    
     while (minGroup < now) {
         var key = minGroup.format(keyFormat);
         labels.push(minGroup.format(labelFormat));
         datasets.open.push(byGroup.open[key] || 0);
         datasets.closed.push(byGroup.closed[key] || 0);
-        links.open.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Aopen%20created%3A" + minGroup.format("YYYY-MM-DD") + ".." + minGroup.add(1, durationStep).format("YYYY-MM-DD"));
-        links.closed.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Aclosed%20created%3A" + minGroup.format("YYYY-MM-DD") + ".." + minGroup.add(1, durationStep).format("YYYY-MM-DD"));
+        links.open.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Aopen%20created%3A" + minGroup.format("YYYY-MM-DD") + ".." + minGroup.add(1, durationStep).format("YYYY-MM-DD"))
+        links.closed.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Aclosed%20created%3A" + minGroup.format("YYYY-MM-DD") + ".." + minGroup.add(1, durationStep).format("YYYY-MM-DD"))
         minGroup.add(1, durationStep);
     }
     return {
         labels:labels, 
         datasets: [{
-            label: "Opened issues",
+            label: "Opened PRs",
             data: datasets.open,
             backgroundColor: "#3ccf53",
             links: links.open
         }, {
-            label: "Closed issues",
+            label: "Closed PRs",
             data: datasets.closed,
             backgroundColor: "#AC8D1C",
             links: links.closed
@@ -42,13 +43,12 @@ function groupby(result, keyFormat, labelFormat, durationStep, linkBase) {
 }
 
 module.exports = function(options, callback) {
-    /* get one issue so that we have a repo base URL */
-    options.db.issue.find({},{"repository_url":1}).limit(1).toArray().then(baseIssue => {
+    /* get one PR so that we have a repo base URL */
+    options.db.pull_request.find({},{"base.repo.pulls_url":1}).limit(1).toArray().then(baseIssue => {
         if (baseIssue.length == 0) return callback();
-        var linkBase = baseIssue[0].repository_url.replace('api.github.com/repos', 'github.com') + '/issues';
+        var linkBase = baseIssue[0].base.repo.pulls_url.replace(/\{\/number\}$/,'').replace('api.github.com/repos', 'github.com');
         /* get issue counts by month */
-        options.db.issue.aggregate([
-            { $match: { pull_request: null } },
+        options.db.pull_request.aggregate([
             { $group: { 
                 _id: { $concat: [{$substrCP: ['$created_at', 0, 7]}, "$state"]},
                 issue_count: {$sum: 1},
@@ -61,10 +61,10 @@ module.exports = function(options, callback) {
 
             var monthlyValues = groupby(result, "YYYY-MM", "MM-YYYY", "month", linkBase);
             monthlyValues.minimumLength = 5;
+            monthlyValues.default = true;
 
             /* get issue counts by day */
-            options.db.issue.aggregate([
-                { $match: { pull_request: null } },
+            options.db.pull_request.aggregate([
                 { $group: { 
                     _id: { $concat: [{$substrCP: ['$created_at', 0, 10]}, "$state"]},
                     issue_count: {$sum: 1},
@@ -79,7 +79,7 @@ module.exports = function(options, callback) {
                 weeklyValues.minimumLength = 5;
 
                 var graph = {
-                    title: "Issues open and closed this month",
+                    title: "PRs open and closed this month",
                     graphdata: JSON.stringify({
                         type: "bar",
                         data: {
@@ -99,5 +99,5 @@ module.exports = function(options, callback) {
                 options.templates.graph(graph, callback);
             });
         });
-    }).catch(e => { return callback(e); })
+    }).catch(e => { callback(e); })
 }

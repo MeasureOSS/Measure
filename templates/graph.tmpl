@@ -1,9 +1,9 @@
 <section class="graph">
 <h1>{{title}}</h1>
-<div class="chart-container" style="position: relative; width: 100%"><canvas width="200" height="75" id="{{unique_id}}"></canvas></div>
+<div class="chart-container" style="position: relative; width: 100%"><canvas width="200" height="150" id="{{unique_id}}"></canvas></div>
 <script>
-(function() {
+document.addEventListener("DOMContentLoaded", function() {
     new Chart(document.getElementById("{{unique_id}}"), {{{graphdata}}});
-})()
+}, false);
 </script>
 </section>

@@ -12,12 +12,12 @@ module.exports = function(options, callback) {
     }
 
     /* Work out how many issues are open now */
-    options.db.issue.count({state: "open"}).then(openNowCount => {
+    options.db.issue.count({state: "open", pull_request: null}).then(openNowCount => {
         counts.openNowCount = openNowCount;
-        return options.db.issue.count({state: "open", created_at: {$lt: oneMonthAgo}});
+        return options.db.issue.count({state: "open", pull_request: null, created_at: {$lt: oneMonthAgo}});
     }).then(openThenCount => {
         counts.openThenCount = openThenCount;
-        return options.db.issue.count({state: "closed", closed_at: {$gt: oneMonthAgo}});
+        return options.db.issue.count({state: "closed", pull_request: null, closed_at: {$gt: oneMonthAgo}});
     }).then(closedSinceCount => {
         counts.closedSinceCount = closedSinceCount;
         let openAMonthAgoCount = counts.openThenCount + counts.closedSinceCount;

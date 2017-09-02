@@ -25,7 +25,7 @@ module.exports = function(options, callback) {
             var prnt = minMonth.format("MM-YYYY");
             var thesevalues = byMonth[key];
             if (thesevalues) {
-                values.push({month: prnt, avgPRMergeTime: averageArray(thesevalues)});
+                values.push({month: prnt, avgPRMergeTime: Math.round(averageArray(thesevalues))});
             } else {
                 values.push({month: prnt, avgPRMergeTime: 0});
             }
@@ -49,7 +49,7 @@ module.exports = function(options, callback) {
                 options: {
                     scales: {
                         xAxes: [{display: false}],
-                        yAxes: [{display: false, beginAtZero: true}]
+                        yAxes: [{display: false}]
                     }
                 }
             })

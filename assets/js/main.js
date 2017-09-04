@@ -103,7 +103,7 @@ Chart.plugins.register({
                 // this is a slider change. Crop the lists, and crop them
                 // from the right-hand end
                 ndatasets.forEach(function(nd) {
-                    nd.data = nd.data.slice(nd.length - slider.valueAsNumber);
+                    nd.data = nd.data.slice(nd.data.length - slider.valueAsNumber);
                 })
                 console.log("slidermax", slider.max, "sliderval", slider.valueAsNumber, "len", nlabels.length, "so show from", nlabels.length - slider.valueAsNumber);
                 nlabels = nlabels.slice(nlabels.length - slider.valueAsNumber);

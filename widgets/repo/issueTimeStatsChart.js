@@ -2,13 +2,13 @@ const moment = require("moment");
 const widgetUtils = require("../widgetUtils");
 
 module.exports = function(options, callback) {
-    widgetUtils.dateDiffsByTimePeriods(options.db.pull_request, {merged_at: {$ne: null}}, 
+    widgetUtils.dateDiffsByTimePeriods(options.db.issue, {closed_at: {$ne: null}}, 
         "created_at", obj => {
-        return moment(obj.merged_at).diff(moment(obj.created_at));
+        return moment(obj.closed_at).diff(moment(obj.created_at));
     }, function(err, res) {
         if (err) return callback(err);
         var graph = {
-            title: "Time to merge a PR",
+            title: "Time to close an issue",
             graphdata: JSON.stringify({
                 type: "line",
                 data: {

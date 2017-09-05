@@ -1,12 +1,7 @@
 var API = (function() {
-    function xhr(method, url, body, headers, done) {
+    function xhr(method, params, done) {
         var x = new XMLHttpRequest();
-        x.open(method, BASE_API_URL + "/" + url, true);
-        if (headers) {
-            for (var k in headers) {
-                x.setRequestHeader(k, headers[k]);
-            }
-        }
+        x.open(method, BASE_API_URL + "?" + encodeQS(params), true);
         var t = setTimeout(function() {
             x.abort();
             done(new Error("timeout"));
@@ -19,53 +14,42 @@ var API = (function() {
             } catch(e) {
                 done(new Error(e));
             }
-            if (j.error) {
-                if (j.error.code == 204) {
-                    return done(null, []);
-                }
+            if (j.exception) {
                 return done(j.error);
             }
             done(null, j);
         }
         x.onerror = done;
-        x.send(body);
+        x.send();
     }
     function encodeQS(dict) {
         return Object.keys(dict)
             .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(dict[k]))
             .join('&');
     }
-    function get(table, column, value, queryOptions, done) {
-        var url = encodeURIComponent(table);
-        if (column != "" && value != "" && column && value) url += "/" + encodeURIComponent(column) + "/" + encodeURIComponent(value);
-        var qs = encodeQS(queryOptions);
-        if (qs.length > 0) url += "?" + qs;
-        xhr("GET", url, null, null, done);
-    }
-    function post(table, fields_and_values, done) {
-        var url = encodeURIComponent(table) + "/";
-        xhr("POST", url, encodeQS(fields_and_values), {"Content-Type": "application/x-www-form-urlencoded"}, done);
-    }
-    function _delete(table, id, done) {
-        var url = encodeURIComponent(table) + "/" + encodeURIComponent(id);
-        xhr("DELETE", url, {}, null, done);
+    function query(method, queryname, params, done) {
+        var nparams = Object.assign({query: queryname}, params);
+        if (queryname != "token") {
+            if (TOKEN) {
+                nparams.token = TOKEN;
+            } else {
+                // spin until we've got a token
+                setTimeout(function() {
+                    query(method, queryname, params, done);
+                }, 100);
+                return;
+            }
+        }
+        xhr(method, nparams, done);
     }
 
-    var available = true;
-    get("notes", null, null, {limit: 1}, function(err, v) {
-        if (err && err.code == 503 && err.exception == "could not find driver") {
-            console.log("Warning: admin database is not available. You may need to install the PHP SQLite driver.");
-        }
-        if (err) {
-            available = false;
-        }
-    });
-    return {
-        get: get,
-        post: post,
-        delete: _delete,
-        isAvailable: function() { return available; }
-    }
+    var TOKEN;
+    query("GET", "token", {}, function(err, res) {
+        if (err) { return flash("Couldn't contact server", err); }
+        TOKEN = res.token;
+    })
+
+    return query;
 })();
 
 var flash = (function() {
@@ -99,43 +83,4 @@ var flash = (function() {
     return f;
 })();
 
-Array.prototype.slice.call(document.querySelectorAll("section.notes")).forEach(function(ns) {
-    var login = ns.getAttribute("data-login");
-    var ul = ns.querySelector("ul");
-
-    function updateNotes() {
-        API.get("notes", "login", login, {by: "timestamp"}, function(err, notes) {
-            if (err) return flash(err);
-            var frag = document.createDocumentFragment();
-            notes.forEach(function(n) {
-                var li = document.createElement("li");
-                var a = document.createElement("a");
-                a.appendChild(document.createTextNode("×"));
-                a.href = "#";
-                a.onclick = function() {
-                    API.delete("notes", n.id, function(err) {
-                        if (err) return flash("Couldn't delete note", err);
-                        updateNotes();
-                    })
-                }
-                li.appendChild(document.createTextNode(n.note + " "));
-                li.appendChild(a);
-                frag.appendChild(li);
-            })
-            ul.innerHTML = "";
-            ul.appendChild(frag);
-        })
-    }
-
-    ns.querySelector("button").onclick = function() {
-        var n = prompt("Add a note?");
-        if (n) {
-            API.post("notes", {login: login, note: n}, function(err) {
-                if (err) { return flash("Couldn't save note", err); }
-                updateNotes();
-            })
-        }
-    }
-    updateNotes();
-})
 

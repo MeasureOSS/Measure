@@ -35,7 +35,7 @@ function loadTemplates() {
     dynamically picked up doesn't buy us much.
     */
     const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", 
-        "table", "dl", "notes"];
+        "table", "dl", "notes", "orgs"];
 
     return new Promise((resolve, reject) => {
         /*
@@ -553,11 +553,11 @@ function frontPage(options) {
 
 function api(options) {
     return new Promise((resolve, reject) => {
-        fs.readFile("arrestdb.php", {encoding: "utf-8"}, (err, data) => {
+        fs.readFile("api.php", {encoding: "utf-8"}, (err, data) => {
             options.sqliteDatabase = options.userConfig.database_directory + "/admin.db";
             var rel = path.relative(options.userConfig.output_directory,
                 options.sqliteDatabase);
-            data = data.replace("$dsn = '';", "$dsn = 'sqlite://' . dirname(__FILE__) . '/" + rel + "';")
+            data = data.replace("$dsn = '';", "$dsn = 'sqlite:' . dirname(__FILE__) . '/" + rel + "';")
             const outputFile = path.join(options.userConfig.output_directory, "api.php");
             fs.writeFile(outputFile, data, {encoding: "utf8"}, err => {
                 if (err) {
@@ -570,7 +570,9 @@ function api(options) {
 }
 
 const tableDefinitions = [
-    "notes (id INTEGER PRIMARY KEY, login TEXT, note TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)"
+    "notes (id INTEGER PRIMARY KEY, login TEXT, note TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)",
+    "orgs (id INTEGER PRIMARY KEY, name TEXT)",
+    "people2org (id INTEGER PRIMARY KEY, org INTEGER, login TEXT, joined DATETIME DEFAULT CURRENT_TIMESTAMP, left DATETIME)"
 ];
 function apidb(options) {
     return new Promise((resolve, reject) => {

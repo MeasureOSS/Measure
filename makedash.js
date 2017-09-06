@@ -485,7 +485,7 @@ function runWidgets(options, limit) {
             })
 
             var in_params = {db: colldict, templates: options.templates, url: url_lookup};
-            async.map(options.widgets[mylimit.limitType], function(widget, done) {
+            async.mapSeries(options.widgets[mylimit.limitType], function(widget, done) {
                 try {
                     widget.module(in_params, function(err, result) {
                         if (err) {

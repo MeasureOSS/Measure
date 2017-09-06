@@ -1,10 +1,18 @@
-{{> header.tmpl}}
-                <section>
-                    <h1>Dashboards</h1>
-                    <ul class="repolist">
-                    {{#links}}
-                    <li><a href="{{link}}">{{title}}</a></li>
-                    {{/links}}
-                    </ul>
-                </section>
+{{> mainlessheader.tmpl}}
+            <section>
+                <h1>Dashboards</h1>
+                <ul class="repolist">
+                {{#links}}
+                <li><a href="{{link}}">{{title}}</a></li>
+                {{/links}}
+                </ul>
+            </section>
+            <h1>Overall statistics</h1>
+
+            <div class="main wrapper clearfix">
+                {{#widgets}}
+                <article data-widget="{{widget}}"{{#extraClasses}} class="{{extraClasses}}"{{/extraClasses}}>
+                    {{{html}}}
+                </article>
+                {{/widgets}}
 {{> footer.tmpl}}

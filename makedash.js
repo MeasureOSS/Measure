@@ -362,6 +362,26 @@ const LIMITS_MATCH = (regexp_value, existing, fieldname) => {
     return { $and: [ existing, matcher ] }
 }
 const LIMITS = {
+    root: {
+        issue: { 
+            find: (r,e) => { return e; },
+            count: (r,e) => { return e; },
+            distinct: (r,e) => { return e; },
+            aggregate: (r,e) => { return e; },
+        },
+        issue_comment: { 
+            find: (r,e) => { return e; },
+            count: (r,e) => { return e; },
+            distinct: (r,e) => { return e; },
+            aggregate: (r,e) => { return e; },
+        },
+        pull_request: { 
+            find: (r,e) => { return e; },
+            count: (r,e) => { return e; },
+            distinct: (r,e) => { return e; },
+            aggregate: (r,e) => { return e; },
+        },
+    },
     contributor: {
         user: {
             find: (u,e) => { return {$and: [e, {login: u}]} }
@@ -505,7 +525,6 @@ function assembleDashboard(options) {
     return new Promise((resolve, reject) => {
         options.templates.dashboard({widgets: options.htmls, subtitle: options.limit.value}, (err, output) => {
             if (err) return reject(err);
-            //const outputSlug = options.limit.limitType + "-" + options.limit.value.replace("/", "--") + ".html";
             const outputSlug = options.limit.limitType + "/" + options.limit.value + ".html";
             const outputFile = path.join(options.userConfig.output_directory, outputSlug);
             const outputDir = path.dirname(outputFile);
@@ -521,35 +540,6 @@ function assembleDashboard(options) {
         })
     });
 }
-
-function frontPage(options) {
-    return new Promise((resolve, reject) => {
-        let links = options.userConfig.github_repositories.map(op => {
-            return {
-                link: url_lookup("repo", op),
-                title: op
-            }
-        })
-        options.templates.front({links: links}, (err, output) => {
-            if (err) return reject(err);
-            const outputFile = path.join(options.userConfig.output_directory, "index.html");
-            const outputAssets = path.join(options.userConfig.output_directory, "assets");
-            output = fixOutputLinks(output, outputFile, options);
-            fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
-                if (err) {
-                    return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
-                }
-                fs.copy("assets", outputAssets, e => {
-                    if (err) {
-                        return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputAssets));
-                    }
-                    return resolve(options);
-                });
-            })
-        })
-    });
-}
-
 
 function api(options) {
     return new Promise((resolve, reject) => {
@@ -597,6 +587,39 @@ function leave(options) {
     options.db.close();
     console.log(`Dashboards generated OK in directory '${options.userConfig.output_directory}'.`);
     console.log(`Database ensured in directory '${options.userConfig.database_directory}'.`);
+}
+
+function frontPage(options) {
+    return new Promise((resolve, reject) => {
+        let links = options.userConfig.github_repositories.map(op => {
+            return {
+                link: url_lookup("repo", op),
+                title: op
+            }
+        })
+        runWidgets(Object.assign({}, options), {limitType: "root", value: null})
+            .then(options => {
+                options.templates.front({links: links, widgets: options.htmls}, (err, output) => {
+                    if (err) return reject(err);
+                    const outputFile = path.join(options.userConfig.output_directory, "index.html");
+                    const outputAssets = path.join(options.userConfig.output_directory, "assets");
+                    output = fixOutputLinks(output, outputFile, options);
+                    fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
+                        if (err) {
+                            return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
+                        }
+                        fs.copy("assets", outputAssets, e => {
+                            if (err) {
+                                return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputAssets));
+                            }
+                            return resolve(options);
+                        });
+                    })
+                })
+
+            })
+            .catch(e => { reject(e); })
+    });
 }
 
 function dashboardForEachRepo(options) {

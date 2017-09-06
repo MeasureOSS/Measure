@@ -17,7 +17,7 @@ module.exports = function(options, callback) {
                     let oldUsers = oldPRUsers.concat(oldIssueUsers);
                     let leavingUsers = [];
                     oldUsers.forEach(r => { 
-                        if (recentUsers.indexOf(r) == -1) leavingUsers.push(r);
+                        if (recentUsers.indexOf(r) == -1 && leavingUsers.indexOf(r) == -1) leavingUsers.push(r);
                     })
                     var result = {
                         title: "Leaving contributors",

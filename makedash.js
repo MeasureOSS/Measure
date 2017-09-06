@@ -167,49 +167,58 @@ function connectToDB(options) {
     })
 }
 
+function notyetWarning(orgs, repos) {
+    var warning = "WARNING: there seem to be no database entries for " +
+        "some of your repositories. You may need to wait a little " +
+        "longer for the data to arrive before these dashboards " +
+        "can be generated.\n" +
+        "Alternatively, you may need to tell the crawler to fetch " +
+        "these data. Run the following commands in the ghcrawler-cli " +
+        "folder:\n" +
+        "node bin/cc orgs " + orgs.join(" ") + "\n" +
+        "node bin/cc queue " + repos.join(" ") + "\n" +
+        "node bin/cc start\n";
+    return warning;
+}
+
 function confirmCrawler(options) {
     /*
     Confirm that you have repo entries for all the repos in your config.
     If you don't, show a warning.
     */
     return new Promise((resolve, reject) => {
+
+        var orgs = {};
+        options.userConfig.github_repositories.forEach(ur => {
+            orgs[ur.split("/")[0]] = "";
+        })
+        orgs = Object.keys(orgs);
         options.db.collection("repo", {strict: true}, function(err, repo) {
             if (err) {
-                if (err.message.match(/^Collection .* does not exist/)) {
-                    return reject(NICE_ERRORS.NO_REPO_COLLECTION_ERROR());
+                if (err.message.match(/^Collection repo does not exist/)) {
+                    return reject(NICE_ERRORS.NO_COLLECTION_ERROR(orgs, options.userConfig.github_repositories));
                 } else {
                     return reject(err);
                 }
             }
             options.db.collection("issue", {strict: true}, function(err, issue) {
                 if (err) {
-                    if (err.message.match(/^Collection .* does not exist/)) {
-                        return reject(NICE_ERRORS.NO_ISSUE_COLLECTION_ERROR());
+                    if (err.message.match(/^Collection issue does not exist/)) {
+                        return reject(NICE_ERRORS.NO_COLLECTION_ERROR(orgs, options.userConfig.github_repositories));
                     } else {
                         return reject(err);
                     }
                 }
                 repo.find({}, {full_name:1}).toArray().then(repos => {
                     var repo_names = repos.map(r => { return r.full_name.toLowerCase(); });
-                    var unfound = [], orgs = {};
+                    var unfound = [];
                     options.userConfig.github_repositories.forEach(ur => {
                         if (repo_names.indexOf(ur.toLowerCase()) == -1) {
                             unfound.push(ur);
-                            orgs[ur.split("/")[0]] = "";
                         }
                     })
                     if (unfound.length > 0) {
-                        var warning = "WARNING: there seem to be no database entries for " +
-                            "some of your repositories. You may need to wait a little " +
-                            "longer for the data to arrive before these dashboards " +
-                            "can be generated.\n" +
-                            "Alternatively, you may need to tell the crawler to fetch " +
-                            "these data. Run the following commands in the ghcrawler-cli " +
-                            "folder:\n" +
-                            "node bin/cc orgs " + Object.keys(orgs).join(" ") + "\n" +
-                            "node bin/cc queue " + unfound.join(" ") + "\n" +
-                            "node bin/cc start\n";
-                        console.warn(wrap(warning, {width: 65}));
+                            console.warn(wrap(notyetWarning(orgs, unfound), {width: 65}));
                     }
 
                     /*
@@ -270,16 +279,8 @@ const NICE_ERRORS = {
 
         \n\n(The error is described like this, which may not be helpful:
         "${e}".)`),
-    NO_REPO_COLLECTION_ERROR: e => new NiceError("NoRepoCollectionError", 
-        `The database is running but it doesn't seem to have any repositories
-        at all in it. This shouldn't happen; if this is the first time you've
-        run this script you may need to wait a little for the GitHub crawler
-        to fetch some data so that we have it to analyze.`),
-    NO_ISSUE_COLLECTION_ERROR: e => new NiceError("NoIssueCollectionError", 
-        `The database is running but it doesn't seem to have any issues
-        at all in it. This shouldn't happen; if this is the first time you've
-        run this script you may need to wait a little for the GitHub crawler
-        to fetch some data so that we have it to analyze.`),
+    NO_COLLECTION_ERROR: (orgs, repos) => new NiceError("NoRepoCollectionError", 
+        notyetWarning(orgs, repos)),
     BAD_CONFIG_ERROR: (e, fn) => new NiceError("MisunderstoodConfigError",
         `I couldn't understand the configuration file "${fn}". The issue
         is on line ${e.mark.line + 1} at position ${e.mark.position}.

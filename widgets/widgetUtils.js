@@ -66,14 +66,20 @@ var timePeriods = {
     monthly: {keyFormat:"YYYY-MM", labelFormat:"MM-YYYY", durationStep:"month"},
     weekly: {keyFormat:"YYYY-ww", labelFormat:"ww-YYYY", durationStep:"week"}
 };
+
+module.exports.groupDiffsByTimePeriods = function(diffs) {
+    var groups = {};
+    for (var tp in timePeriods) {
+        groups[tp] = groupby(diffs, timePeriods[tp].keyFormat, 
+        timePeriods[tp].labelFormat, timePeriods[tp].durationStep);
+    }
+    return groups;
+}
+
 module.exports.dateDiffsByTimePeriods = function(collection, query, groupByField, diffFunction, callback) {
     collection.find(query).toArray().then(function(result) {
         var diffs = result.map(o => { return {diff: diffFunction(o), groupDate: moment(o[groupByField])}});
-        var groups = {};
-        for (var tp in timePeriods) {
-            groups[tp] = groupby(diffs, timePeriods[tp].keyFormat, 
-            timePeriods[tp].labelFormat, timePeriods[tp].durationStep);
-        }
+        var groups = module.exports.groupDiffsByTimePeriods(diffs);
         return callback(null, groups);
     }).catch(e => { console.log("err", e); return callback(e); })
 }

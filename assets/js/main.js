@@ -83,4 +83,11 @@ var flash = (function() {
     return f;
 })();
 
-
+// tooltips for ellipsized text
+(function() {
+    Array.prototype.slice.call(document.querySelectorAll("a")).forEach(function(a) {
+        var ws = document.defaultView.getComputedStyle(a).whiteSpace;
+        var pw = a.parentNode.offsetWidth;
+        if ((a.offsetWidth > pw) && ws == "nowrap" && !a.title) a.title = a.textContent;
+    })
+})()

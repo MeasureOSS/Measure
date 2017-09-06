@@ -167,6 +167,75 @@ function connectToDB(options) {
     })
 }
 
+function confirmCrawler(options) {
+    /*
+    Confirm that you have repo entries for all the repos in your config.
+    If you don't, show a warning.
+    */
+    return new Promise((resolve, reject) => {
+        options.db.collection("repo", {strict: true}, function(err, repo) {
+            if (err) {
+                if (err.message.match(/^Collection .* does not exist/)) {
+                    return reject(NICE_ERRORS.NO_REPO_COLLECTION_ERROR());
+                } else {
+                    return reject(err);
+                }
+            }
+            options.db.collection("issue", {strict: true}, function(err, issue) {
+                if (err) {
+                    if (err.message.match(/^Collection .* does not exist/)) {
+                        return reject(NICE_ERRORS.NO_ISSUE_COLLECTION_ERROR());
+                    } else {
+                        return reject(err);
+                    }
+                }
+                repo.find({}, {full_name:1}).toArray().then(repos => {
+                    var repo_names = repos.map(r => { return r.full_name.toLowerCase(); });
+                    var unfound = [], orgs = {};
+                    options.userConfig.github_repositories.forEach(ur => {
+                        if (repo_names.indexOf(ur.toLowerCase()) == -1) {
+                            unfound.push(ur);
+                            orgs[ur.split("/")[0]] = "";
+                        }
+                    })
+                    if (unfound.length > 0) {
+                        var warning = "WARNING: there seem to be no database entries for " +
+                            "some of your repositories. You may need to wait a little " +
+                            "longer for the data to arrive before these dashboards " +
+                            "can be generated.\n" +
+                            "Alternatively, you may need to tell the crawler to fetch " +
+                            "these data. Run the following commands in the ghcrawler-cli " +
+                            "folder:\n" +
+                            "node bin/cc orgs " + Object.keys(orgs).join(" ") + "\n" +
+                            "node bin/cc queue " + unfound.join(" ") + "\n" +
+                            "node bin/cc start\n";
+                        console.warn(wrap(warning, {width: 65}));
+                    }
+
+                    /*
+                    Confirm that there are at least some issues for each repo in your
+                    config. If not, show a warning.
+                    */
+                    async.eachLimit(repo_names, 5, function(repo_name, done) {
+                        issue.find({html_url: { $regex: new RegExp(repo_name), $options: 'i' }}).limit(1).toArray().then(iss => {
+                            if (iss.length == 0) {
+                                var warning = "WARNING: there are no issues recorded for the " +
+                                    repo_name + " repository. This may just be because we haven't " +
+                                    "fetched that data yet.";
+                                console.warn(wrap(warning, {width: 65}));
+                            }
+                            done();
+                        }).catch(e => { done(e); })
+                    }, function(err) {
+                        if (err) { return reject(err); }
+                        return resolve(options);
+                    })
+                }).catch(e => { return reject(e); })
+            })
+        });
+    });
+}
+
 /*
 We define some "nice" errors; these have detailed helpful error text to
 attempt to make things easier to use.
@@ -201,6 +270,16 @@ const NICE_ERRORS = {
 
         \n\n(The error is described like this, which may not be helpful:
         "${e}".)`),
+    NO_REPO_COLLECTION_ERROR: e => new NiceError("NoRepoCollectionError", 
+        `The database is running but it doesn't seem to have any repositories
+        at all in it. This shouldn't happen; if this is the first time you've
+        run this script you may need to wait a little for the GitHub crawler
+        to fetch some data so that we have it to analyze.`),
+    NO_ISSUE_COLLECTION_ERROR: e => new NiceError("NoIssueCollectionError", 
+        `The database is running but it doesn't seem to have any issues
+        at all in it. This shouldn't happen; if this is the first time you've
+        run this script you may need to wait a little for the GitHub crawler
+        to fetch some data so that we have it to analyze.`),
     BAD_CONFIG_ERROR: (e, fn) => new NiceError("MisunderstoodConfigError",
         `I couldn't understand the configuration file "${fn}". The issue
         is on line ${e.mark.line + 1} at position ${e.mark.position}.
@@ -467,6 +546,9 @@ function runWidgets(options, limit) {
             }
 
             // Monkeypatch the find, count, and aggregate functions
+            // to add {user: (thisuser)} or {repo: (thisrepo)} match criteria
+            // to each query, thus limiting its results to only the ones
+            // appropriate for this dashboard
             Object.entries(colldict).forEach(([collname, coll]) => {
                 let replacements = LIMITS[mylimit.limitType][collname];
                 if (replacements) {
@@ -654,6 +736,7 @@ loadTemplates()
     .then(loadWidgets)
     .then(readConfig)
     .then(connectToDB)
+    .then(confirmCrawler)
     .then(dashboardForEachRepo)
     .then(dashboardForEachContributor)
     .then(frontPage)

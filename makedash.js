@@ -11,6 +11,7 @@ const glob = require('glob');
 const sqlite3 = require('sqlite3');
 const StackTraceParser = require('stacktrace-parser');
 const entries = require('object.entries');
+const moment = require('moment');
 if (!Object.entries) { entries.shim(); }
 
 var db;
@@ -120,6 +121,11 @@ function loadWidgets(options) {
                 try {
                     var parts = fn.split("/");
                     var name = parts[parts.length-1].replace(/\.js$/,'');
+                    if (options.userConfig.debug && options.userConfig.onlyTheseWidgets && 
+                        options.userConfig.onlyTheseWidgets.indexOf(name) == -1) {
+                        console.warn("Skipping widget", name, "because config says so");
+                        return done(null, null);
+                    }
                     var index = "99";
                     var mm = name.match(/^([0-9]+)_(.*)$/);
                     if (mm) {
@@ -165,6 +171,36 @@ function connectToDB(options) {
             return resolve(Object.assign({db: mdb}, options));
         });
     })
+}
+
+function getMyOrgUsers(options) {
+    return new Promise((resolve, reject) => {
+        if (!options.userConfig.my_organisations || options.userConfig.my_organisations.length === 0) {
+            // we don't have any orgs defined as ours, so skip
+            return resolve(options);
+        }
+        var sqlite3 = require('sqlite3').verbose();
+        var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
+            if (err) return reject(NICE_ERRORS.COULD_NOT_OPEN_DB(err, options.sqliteDatabase));
+            var questionmarks = [];
+            for (i=0; i<options.userConfig.my_organisations.length; i++) {
+                questionmarks.push("?");
+            }
+            var sql = "select p.login from orgs o inner join people2org p " +
+                "on o.id = p.org " +
+                "where lower(o.name) in (" + questionmarks.join(",") + ") " +
+                "and p.left is null";
+            db.all(sql, options.userConfig.my_organisations.map(o => { return o.toLowerCase(); }), (err, results) => {
+                db.close();
+                if (err) return reject(err);
+                if (results.length > 0) {
+                    options.myOrgUsers = results.map(r => { return r.id; });
+                }
+                return resolve(options);
+            })
+        });
+
+    });
 }
 
 function notyetWarning(orgs, repos) {
@@ -441,6 +477,11 @@ const LIMITS_MATCH = (regexp_value, existing, fieldname) => {
     matcher[fieldname] = {$regex: new RegExp(regexp_value, "i")}
     return { $and: [ existing, matcher ] }
 }
+const LIMITS_IN = (userlist, existing, fieldname) => {
+    const matcher = {};
+    matcher[fieldname] = {$in: userlist}
+    return { $and: [ existing, matcher ] }
+}
 const LIMITS = {
     root: {
         issue: { 
@@ -514,6 +555,28 @@ const LIMITS = {
                 return nexisting;
             }
         }
+    },
+    excludeOrg: {
+        issue: {
+            find: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
+            count: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
+            distinct: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
+            aggregate: (orgusers, existing) => {
+                var nexisting = existing.slice();
+                nexisting.unshift({$match: {"user.login": {$in: orgusers}}});
+                return nexisting;
+            }
+        },
+        pull_request: {
+            find: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
+            count: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
+            distinct: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
+            aggregate: (orgusers, existing) => {
+                var nexisting = existing.slice();
+                nexisting.unshift({$match: {"user.login": {$in: orgusers}}});
+                return nexisting;
+            }
+        }
     }
 }
 
@@ -567,15 +630,37 @@ function runWidgets(options, limit) {
                 }
             })
 
+            if (mylimit.excludeOrg && options.myOrgUsers) {
+                // monkeypatch find, count, aggregate to exclude all users in the org
+                Object.entries(LIMITS.excludeOrg).forEach(([collname, methods]) => {
+                    Object.entries(methods).forEach(([method, fixQuery]) => {
+                        let coll = colldict[collname]
+                        let orig = coll[method];
+                        coll[method] = function() {
+                            let nargs = Array.prototype.slice.call(arguments);
+                            let argIndex = 0;
+                            if (method == "distinct") { argIndex = 1; } // bit of a hack, this.
+                            nargs[argIndex] = fixQuery(options.myOrgUsers, nargs[argIndex]);
+                            return orig.apply(coll, nargs);
+                        }
+                    })
+                })
+            }
+
             var in_params = {db: colldict, templates: options.templates, url: url_lookup};
             async.mapSeries(options.widgets[mylimit.limitType], function(widget, done) {
                 try {
+                    var startTime = (new Date()).getTime();
                     widget.module(in_params, function(err, result) {
                         if (err) {
                             console.error(NICE_ERRORS.WIDGET_ERROR(err, widget).message);
                             return done();
                         }
                         var details = {html: result, extraClasses:widget.module.extraClasses, widget: widget.name, limit: limit};
+                        var dur = (new Date()).getTime() - startTime;
+                        if (!options.times) options.times = {};
+                        if (!options.times[widget.name]) options.times[widget.name] = [];
+                        options.times[widget.name].push(dur);
                         return done(null, details);
                     });
                 } catch(err) {
@@ -606,11 +691,28 @@ function assembleDashboard(options) {
     file as defined in the config.
     */
     return new Promise((resolve, reject) => {
-        options.templates.dashboard({widgets: options.htmls, subtitle: options.limit.value}, (err, output) => {
+        const outputSlugAll = options.limit.limitType + "/" + 
+            options.limit.value + ".html";
+        const outputSlugExcludeOrg = options.limit.limitType + "/" + 
+            options.limit.value + 
+            "-outside-org" +
+            ".html";
+        const outputSlug = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
+        const outputFile = path.join(options.userConfig.output_directory, outputSlug);
+        const outputDir = path.dirname(outputFile);
+        let tmplvars = {
+            widgets: options.htmls,
+            subtitle: options.limit.value,
+        };
+        if (options.limit.excludeOrg) {
+            tmplvars.includeExcludeOrgFilename = outputSlugAll;
+            tmplvars.includeExcludeOrgText = "include everyone";
+        } else {
+            tmplvars.includeExcludeOrgFilename = outputSlugExcludeOrg;
+            tmplvars.includeExcludeOrgText = "exclude org members";
+        }
+        options.templates.dashboard(tmplvars, (err, output) => {
             if (err) return reject(err);
-            const outputSlug = options.limit.limitType + "/" + options.limit.value + ".html";
-            const outputFile = path.join(options.userConfig.output_directory, outputSlug);
-            const outputDir = path.dirname(outputFile);
             fs.ensureDirSync(outputDir);
             options.outputFile = outputFile; options.outputSlug = outputSlug;
             output = fixOutputLinks(output, outputFile, options);
@@ -670,6 +772,23 @@ function leave(options) {
     options.db.close();
     console.log(`Dashboards generated OK in directory '${options.userConfig.output_directory}'.`);
     console.log(`Database ensured in directory '${options.userConfig.database_directory}'.`);
+    if (options.userConfig.debug) {
+        var dur = (new Date()).getTime() - startupTime;
+        console.log("Time taken:", moment.duration(dur).as("seconds"), "seconds");
+        var timestaken = [];
+        for (var widgetname in options.times) {
+            timestaken.push([
+                widgetname, 
+                options.times[widgetname].reduce(function (a, b) { return a + b; }, 0), 
+                options.times[widgetname].length
+            ]);
+        }
+        timestaken.sort((a,b) => { return a[1] - b[1]; })
+        console.log(timestaken.map(n => { 
+            return n[0] + ": " + Math.round(n[1] / 1000) + "s total in " + 
+                n[2] + " iterations, " + Math.round(n[1] / n[2]) + "ms/iteration"; 
+        }).join("\n"));
+    }
 }
 
 function frontPage(options) {
@@ -706,10 +825,15 @@ function frontPage(options) {
 }
 
 function dashboardForEachRepo(options) {
-    var dashboardMakers = options.userConfig.github_repositories.map(repo => {
+    var dashboardMakersAll = options.userConfig.github_repositories.map(repo => {
         return runWidgets(Object.assign({}, options), {limitType: "repo", value: repo})
             .then(assembleDashboard);
     });
+    var dashboardMakersExcludeOrg = options.userConfig.github_repositories.map(repo => {
+        return runWidgets(Object.assign({}, options), {limitType: "repo", value: repo, excludeOrg: true})
+            .then(assembleDashboard);
+    });
+    var dashboardMakers = dashboardMakersAll.concat(dashboardMakersExcludeOrg);
     return Promise.all(dashboardMakers)
         .then(function(arrayOfOptions) {
             var optionsBase = Object.assign({}, arrayOfOptions[0]);
@@ -733,16 +857,18 @@ function dashboardForEachContributor(options) {
     })
 }
 
+var startupTime = (new Date()).getTime();
 loadTemplates()
-    .then(loadWidgets)
     .then(readConfig)
+    .then(loadWidgets)
     .then(connectToDB)
     .then(confirmCrawler)
+    .then(api)
+    .then(apidb)
+    .then(getMyOrgUsers)
     .then(dashboardForEachRepo)
     .then(dashboardForEachContributor)
     .then(frontPage)
-    .then(api)
-    .then(apidb)
     .then(leave)
     .catch(e => {
         if (db) db.close();

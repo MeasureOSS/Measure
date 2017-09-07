@@ -10,3 +10,11 @@ output_directory: dashboard
 # List here the directory where you want the admin database
 # to be written. If this directory doesn't exist, it will be created.
 database_directory: dashboard
+
+# Specify a list of organisations here. This is NOT a GitHub
+# organisation; it is an org as added by you in the Organisations
+# section of a contributor's dashboard. Contributions by users
+# in one of these organisations are excluded when producing the
+# "outside the org" dashboards.
+my_organisations:
+  - LinuxFund

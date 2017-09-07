@@ -415,6 +415,15 @@ ul.adjustable-graph-chooser li:last-of-type, ul.adjustable-graph-chooser li:last
     border-radius: 0 50px 50px 0;
 }
 
+h2.incexcorg {
+    width: 100%;
+    text-align: right;
+    font-size: 1em;
+    font-weight: 100;
+}
+h2.incexcorg a {
+  text-decoration: none;
+}
 /* ==========================================================================
    Media Queries
    ========================================================================== */

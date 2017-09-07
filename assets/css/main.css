@@ -424,6 +424,11 @@ h2.incexcorg {
 h2.incexcorg a {
   text-decoration: none;
 }
+h2.incexcorg img {
+  vertical-align: top;
+  height: 24px;
+}
+
 /* ==========================================================================
    Media Queries
    ========================================================================== */

@@ -706,10 +706,10 @@ function assembleDashboard(options) {
         };
         if (options.limit.excludeOrg) {
             tmplvars.includeExcludeOrgFilename = outputSlugAll;
-            tmplvars.includeExcludeOrgText = "include everyone";
+            tmplvars.excludeOrg = true;
         } else {
             tmplvars.includeExcludeOrgFilename = outputSlugExcludeOrg;
-            tmplvars.includeExcludeOrgText = "exclude org members";
+            tmplvars.excludeOrg = false;
         }
         options.templates.dashboard(tmplvars, (err, output) => {
             if (err) return reject(err);

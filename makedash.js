@@ -213,7 +213,7 @@ function notyetWarning(orgs, repos) {
         "folder:\n" +
         "node bin/cc orgs " + orgs.join(" ") + "\n" +
         "node bin/cc queue " + repos.join(" ") + "\n" +
-        "node bin/cc start\n";
+        "node bin/cc start 10\n";
     return warning;
 }
 

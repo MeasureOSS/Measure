@@ -585,7 +585,8 @@ function url_lookup(user_collection_name, key) {
         case "contributor":
             return "$$BASEURL$$/contributor/" + key + ".html";
         case "repo":
-            return "$$BASEURL$$/repo/" + key + ".html";
+            // we default to the outside-org link
+            return "$$BASEURL$$/repo/" + key + "-outside-org.html";
     }
 }
 
@@ -770,9 +771,9 @@ function apidb(options) {
 function leave(options) {
     /* And shut all our stuff down. Don't close down ghcrawler itself. */
     options.db.close();
-    console.log(`Dashboards generated OK in directory '${options.userConfig.output_directory}'.`);
-    console.log(`Database ensured in directory '${options.userConfig.database_directory}'.`);
     if (options.userConfig.debug) {
+        console.log(`Dashboards generated OK in directory '${options.userConfig.output_directory}'.`);
+        console.log(`Database ensured in directory '${options.userConfig.database_directory}'.`);
         var dur = (new Date()).getTime() - startupTime;
         console.log("Time taken:", moment.duration(dur).as("seconds"), "seconds");
         var timestaken = [];

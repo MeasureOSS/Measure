@@ -175,7 +175,7 @@ function connectToDB(options) {
 
 function getMyOrgUsers(options) {
     return new Promise((resolve, reject) => {
-        if (!options.userConfig.my_organisations || options.userConfig.my_organisations.length === 0) {
+        if (!options.userConfig.my_organizations || options.userConfig.my_organizations.length === 0) {
             // we don't have any orgs defined as ours, so skip
             return resolve(options);
         }
@@ -183,14 +183,14 @@ function getMyOrgUsers(options) {
         var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
             if (err) return reject(NICE_ERRORS.COULD_NOT_OPEN_DB(err, options.sqliteDatabase));
             var questionmarks = [];
-            for (i=0; i<options.userConfig.my_organisations.length; i++) {
+            for (i=0; i<options.userConfig.my_organizations.length; i++) {
                 questionmarks.push("?");
             }
             var sql = "select p.login from orgs o inner join people2org p " +
                 "on o.id = p.org " +
                 "where lower(o.name) in (" + questionmarks.join(",") + ") " +
                 "and p.left is null";
-            db.all(sql, options.userConfig.my_organisations.map(o => { return o.toLowerCase(); }), (err, results) => {
+            db.all(sql, options.userConfig.my_organizations.map(o => { return o.toLowerCase(); }), (err, results) => {
                 db.close();
                 if (err) return reject(err);
                 if (results.length > 0) {

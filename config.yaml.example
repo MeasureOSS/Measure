@@ -11,10 +11,10 @@ output_directory: dashboard
 # to be written. If this directory doesn't exist, it will be created.
 database_directory: dashboard
 
-# Specify a list of organisations here. This is NOT a GitHub
-# organisation; it is an org as added by you in the Organisations
+# Specify a list of organizations here. This is NOT a GitHub
+# organization; it is an org as added by you in the Organizations
 # section of a contributor's dashboard. Contributions by users
-# in one of these organisations are excluded when producing the
+# in one of these organizations are excluded when producing the
 # "outside the org" dashboards.
-my_organisations:
+my_organizations:
   - LinuxFund

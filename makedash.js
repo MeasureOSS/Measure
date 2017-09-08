@@ -194,7 +194,7 @@ function getMyOrgUsers(options) {
                 db.close();
                 if (err) return reject(err);
                 if (results.length > 0) {
-                    options.myOrgUsers = results.map(r => { return r.id; });
+                    options.myOrgUsers = results.map(r => { return r.login; });
                 }
                 return resolve(options);
             })
@@ -477,9 +477,9 @@ const LIMITS_MATCH = (regexp_value, existing, fieldname) => {
     matcher[fieldname] = {$regex: new RegExp(regexp_value, "i")}
     return { $and: [ existing, matcher ] }
 }
-const LIMITS_IN = (userlist, existing, fieldname) => {
+const LIMITS_NOT_IN = (userlist, existing, fieldname) => {
     const matcher = {};
-    matcher[fieldname] = {$in: userlist}
+    matcher[fieldname] = {$nin: userlist}
     return { $and: [ existing, matcher ] }
 }
 const LIMITS = {
@@ -558,22 +558,22 @@ const LIMITS = {
     },
     excludeOrg: {
         issue: {
-            find: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
-            count: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
-            distinct: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
+            find: (orgusers, e) => { return LIMITS_NOT_IN(orgusers, e, "user.login"); },
+            count: (orgusers, e) => { return LIMITS_NOT_IN(orgusers, e, "user.login"); },
+            distinct: (orgusers, e) => { return LIMITS_NOT_IN(orgusers, e, "user.login"); },
             aggregate: (orgusers, existing) => {
                 var nexisting = existing.slice();
-                nexisting.unshift({$match: {"user.login": {$in: orgusers}}});
+                nexisting.unshift({$match: {"user.login": {$nin: orgusers}}});
                 return nexisting;
             }
         },
         pull_request: {
-            find: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
-            count: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
-            distinct: (orgusers, e) => { return LIMITS_IN(orgusers, e, "user.login"); },
+            find: (orgusers, e) => { return LIMITS_NOT_IN(orgusers, e, "user.login"); },
+            count: (orgusers, e) => { return LIMITS_NOT_IN(orgusers, e, "user.login"); },
+            distinct: (orgusers, e) => { return LIMITS_NOT_IN(orgusers, e, "user.login"); },
             aggregate: (orgusers, existing) => {
                 var nexisting = existing.slice();
-                nexisting.unshift({$match: {"user.login": {$in: orgusers}}});
+                nexisting.unshift({$match: {"user.login": {$nin: orgusers}}});
                 return nexisting;
             }
         }

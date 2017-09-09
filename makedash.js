@@ -12,6 +12,7 @@ const sqlite3 = require('sqlite3');
 const StackTraceParser = require('stacktrace-parser');
 const entries = require('object.entries');
 const moment = require('moment');
+const request = require('request');
 if (!Object.entries) { entries.shim(); }
 
 var db;
@@ -216,6 +217,53 @@ function notyetWarning(orgs, repos) {
         "node bin/cc start 10\n";
     return warning;
 }
+
+
+function confirmTokens(options) {
+    /*
+    Confirm that you have Github tokens in the crawler.
+    If you don't, show a warning and instructions.
+    */
+    return new Promise((resolve, reject) => {
+        request.get({
+            url: "http://localhost:3000/config/tokens",
+            headers: { "X-Token": "secret"},
+            json: true
+        }, function(err, response, body) {
+            if (err) {
+                /*
+                Got an error talking to the crawler.
+                This probably means that it's running somewhere other than
+                where we expect. So, don't say anything, and carry on.
+                */
+                return resolve(options);
+            }
+            // No error. Check the body, which is JSON (otherwise we'd have an error).
+            if (body.length === 0) {
+                console.warn(wrap("You do not have any GitHub tokens allocated to the " +
+                    "GitHub crawler. This means that it can only fetch your " +
+                    "repository information at a very restricted rate. You should " +
+                    "register some GitHub tokens at https://github.com/settings/tokens and " +
+                    "then add them to the crawler with:\nbin/cc tokens aaaaaaaaa#private\n " +
+                    "using the cc utility from https://github.com/Microsoft/ghcrawler-cli.",
+                    {width: 65}));
+            } else if (body.length < 3 && options.userConfig.debug) {
+                console.warn(wrap("You only have " + body.length + " GitHub token" +
+                    (body.length == 1 ? "" : "s") + " allocated to the " +
+                    "GitHub crawler. Registering more tokens will help the crawler " +
+                    "fetch data much faster. You should " +
+                    "register more GitHub tokens at https://github.com/settings/tokens and " +
+                    "then add them to the crawler with:\nbin/cc tokens aaaaaaaaa#private\n" +
+                    "using cc from https://github.com/Microsoft/ghcrawler-cli.",
+                    {width: 65}));
+            } else {
+                // do nothing
+            }
+            resolve(options);
+        })
+    });
+}
+
 
 function confirmCrawler(options) {
     /*
@@ -864,6 +912,7 @@ loadTemplates()
     .then(loadWidgets)
     .then(connectToDB)
     .then(confirmCrawler)
+    .then(confirmTokens)
     .then(api)
     .then(apidb)
     .then(getMyOrgUsers)

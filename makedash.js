@@ -840,6 +840,41 @@ function leave(options) {
     }
 }
 
+function writeFront(options, links) {
+    return new Promise((resolve, reject) => {
+        const outputSlugAll = "index.html";
+        const outputSlugExcludeOrg = "index-outside-org.html";
+        const outputSlug = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
+        const outputFile = path.join(options.userConfig.output_directory, outputSlug);
+        var tmplvars = {links: links, widgets: options.htmls};
+        if (options.limit.excludeOrg) {
+            tmplvars.includeExcludeOrgFilename = outputSlugAll;
+            tmplvars.excludeOrg = true;
+        } else {
+            tmplvars.includeExcludeOrgFilename = outputSlugExcludeOrg;
+            tmplvars.excludeOrg = false;
+        }
+        options.templates.front(tmplvars, (err, output) => {
+            if (err) return reject(err);
+            var idx = options.limit.excludeOrg ? "index-outside-org.html" : "index.html";
+            output = fixOutputLinks(output, outputFile, options);
+            fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
+                if (err) {
+                    return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
+                }
+                return resolve(options);
+            })
+        });
+    })
+}
+
+function copyAssets(options) {
+    return new Promise((resolve, reject) => {
+        console.log("copyassets");
+        resolve(options);
+    })
+}
+
 function frontPage(options) {
     return new Promise((resolve, reject) => {
         let links = options.userConfig.github_repositories.map(op => {
@@ -848,6 +883,20 @@ function frontPage(options) {
                 title: op
             }
         })
+
+        runWidgets(Object.assign({}, options),  {limitType: "root", value: null})
+            .then(options => { return writeFront(options, links); })
+            .then(options => {
+                return runWidgets(Object.assign({}, options),  {limitType: "root", value: null, excludeOrg: true})
+            })
+            .then(options => { return writeFront(options, links); })
+            .then(copyAssets)
+            .then(options => {
+                resolve(options);
+            })
+            .catch(e => { reject(e); })
+
+        /*
         runWidgets(Object.assign({}, options), {limitType: "root", value: null})
             .then(options => {
                 options.templates.front({links: links, widgets: options.htmls}, (err, output) => {
@@ -870,6 +919,7 @@ function frontPage(options) {
 
             })
             .catch(e => { reject(e); })
+        */
     });
 }
 

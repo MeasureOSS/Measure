@@ -18,3 +18,12 @@ database_directory: dashboard
 # "outside the org" dashboards.
 my_organizations:
   - LinuxFund
+
+# If hoursToRespond is specified, then a line will be drawn on
+# time series graphs at the position specified; the idea here is
+# that if you'd like to respond to PRs or issues within a certain
+# period, you can then look at the Time To Respond graph for issues
+# and see whether you're meeting that. Defining this option will also
+# make the list-of-issues (and PRs) widget show how many issues were 
+# not responded to in this time.
+hoursToRespond: 96

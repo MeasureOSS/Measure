@@ -7,6 +7,21 @@ module.exports = function(options, callback) {
         return moment(obj.merged_at).diff(moment(obj.created_at));
     }, function(err, res) {
         if (err) return callback(err);
+        var hoursToRespondLine;
+        if (options.config.hoursToRespond) {
+            hoursToRespondLine = {
+                drawTime: 'afterDatasetsDraw', // (default)
+                events: [],
+                annotations: [{
+                    type: 'line',
+                    mode: 'horizontal',
+                    scaleID: 'y-axis-0',
+                    value: options.config.hoursToRespond,
+                    borderColor: 'red',
+                    borderWidth: 2
+                }]
+            };
+        };
         var graph = {
             title: "Time to merge a PR",
             graphdata: JSON.stringify({
@@ -19,17 +34,17 @@ module.exports = function(options, callback) {
                             labels: res.monthly.labels,
                             datasets: [
                                 {
-                                    data: res.monthly.data.map(n => n.average.value),
+                                    data: res.monthly.data.map(n => Math.round(n.average.value / 1000 / 60 / 60)),
                                     borderColor: "#3ccf53",
-                                    label: "Average"
+                                    label: "Average (hrs)"
                                 }, {
-                                    data: res.monthly.data.map(n => n.median.value),
+                                    data: res.monthly.data.map(n => Math.round(n.median.value / 1000 / 60 / 60)),
                                     borderColor: "#AC8D1C",
-                                    label: "Median"
+                                    label: "Median (hrs)"
                                 }, {
-                                    data: res.monthly.data.map(n => n.pc95.value),
+                                    data: res.monthly.data.map(n => Math.round(n.pc95.value / 1000 / 60 / 60)),
                                     borderColor: "#4150F8",
-                                    label: "95th percentile"
+                                    label: "95th percentile (hrs)"
                                 }
                             ]
                         },
@@ -38,17 +53,17 @@ module.exports = function(options, callback) {
                             labels: res.weekly.labels,
                             datasets: [
                                 {
-                                    data: res.weekly.data.map(n => n.average.value),
+                                    data: res.weekly.data.map(n => Math.round(n.average.value / 1000 / 60 / 60)),
                                     borderColor: "#3ccf53",
-                                    labels: "Average"
+                                    labels: "Average (hrs)"
                                 }, {
-                                    data: res.weekly.data.map(n => n.median.value),
+                                    data: res.weekly.data.map(n => Math.round(n.median.value / 1000 / 60 / 60)),
                                     borderColor: "#AC8D1C",
-                                    label: "Median"
+                                    label: "Median (hrs)"
                                 }, {
-                                    data: res.weekly.data.map(n => n.pc95.value),
+                                    data: res.weekly.data.map(n => Math.round(n.pc95.value / 1000 / 60 / 60)),
                                     borderColor: "#4150F8",
-                                    label: "95th percentile"
+                                    label: "95th percentile (hrs)"
                                 }
                             ]
                         }
@@ -58,7 +73,8 @@ module.exports = function(options, callback) {
                     scales: {
                         xAxes: [{display: true}],
                         yAxes: [{display: false}]
-                    }
+                    },
+                    annotation: hoursToRespondLine
                 }
             })
         }

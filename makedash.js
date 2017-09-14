@@ -671,7 +671,6 @@ function runWidgets(options, limit) {
                             let argIndex = 0;
                             if (method == "distinct") { argIndex = 1; } // bit of a hack, this.
                             nargs[argIndex] = fixQuery(limit.value, nargs[argIndex]);
-                            //console.log(mylimit.value, collname, method, util.inspect(nargs, {depth:null}));
                             return orig.apply(coll, nargs);
                         }
                     })
@@ -695,7 +694,12 @@ function runWidgets(options, limit) {
                 })
             }
 
-            var in_params = {db: colldict, templates: options.templates, url: url_lookup};
+            var in_params = {
+                db: colldict, 
+                templates: options.templates, 
+                url: url_lookup,
+                config: options.userConfig
+            };
             async.mapSeries(options.widgets[mylimit.limitType], function(widget, done) {
                 try {
                     var startTime = (new Date()).getTime();

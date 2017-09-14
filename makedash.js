@@ -37,7 +37,7 @@ function loadTemplates() {
     dynamically picked up doesn't buy us much.
     */
     const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", 
-        "table", "dl", "notes", "orgs"];
+        "table", "dl", "notes", "orgs", "redirect"];
 
     return new Promise((resolve, reject) => {
         /*
@@ -633,8 +633,7 @@ function url_lookup(user_collection_name, key) {
         case "contributor":
             return "$$BASEURL$$/contributor/" + key + ".html";
         case "repo":
-            // we default to the outside-org link
-            return "$$BASEURL$$/repo/" + key + "-outside-org.html";
+            return "$$BASEURL$$/repo/" + key + ".html";
     }
 }
 
@@ -741,13 +740,20 @@ function assembleDashboard(options) {
     */
     return new Promise((resolve, reject) => {
         const outputSlugAll = options.limit.limitType + "/" + 
-            options.limit.value + ".html";
+            options.limit.value + "-include-org.html";
         const outputSlugExcludeOrg = options.limit.limitType + "/" + 
-            options.limit.value + 
-            "-outside-org" +
-            ".html";
-        const outputSlug = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
+            options.limit.value + "-outside-org.html";
+        const outputSlugRedirect = options.limit.limitType + "/" + 
+            options.limit.value + ".html";
+        var outputSlug = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
+        var writeRedirect = true;
+        // special handling for contributors, who don't have inside or outside org
+        if (options.limit.limitType == "contributor") {
+            outputSlug = outputSlugRedirect;
+            writeRedirect = false;
+        }
         const outputFile = path.join(options.userConfig.output_directory, outputSlug);
+        const outputFileRedirect = path.join(options.userConfig.output_directory, outputSlugRedirect);
         const outputDir = path.dirname(outputFile);
         let tmplvars = {
             widgets: options.htmls,
@@ -769,7 +775,18 @@ function assembleDashboard(options) {
                 if (err) {
                     return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
                 }
-                return resolve(options);
+                if (writeRedirect) {
+                    options.templates.redirect({outputSlugAll:path.basename(outputSlugAll), outputSlugExcludeOrg:path.basename(outputSlugExcludeOrg)}, (err, output) => {
+                        fs.writeFile(outputFileRedirect, output, {encoding: "utf8"}, err => {
+                            if (err) {
+                                return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
+                            }
+                            return resolve(options);
+                        });
+                    });
+                } else {
+                    return resolve(options);
+                }
             })
         })
     });
@@ -842,10 +859,12 @@ function leave(options) {
 
 function writeFront(options, links) {
     return new Promise((resolve, reject) => {
-        const outputSlugAll = "index.html";
+        const outputSlugAll = "index-include-org.html";
         const outputSlugExcludeOrg = "index-outside-org.html";
+        const outputSlugRedirect = "index.html";
         const outputSlug = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
         const outputFile = path.join(options.userConfig.output_directory, outputSlug);
+        const outputFileRedirect = path.join(options.userConfig.output_directory, outputSlugRedirect);
         var tmplvars = {links: links, widgets: options.htmls};
         if (options.limit.excludeOrg) {
             tmplvars.includeExcludeOrgFilename = outputSlugAll;
@@ -856,22 +875,34 @@ function writeFront(options, links) {
         }
         options.templates.front(tmplvars, (err, output) => {
             if (err) return reject(err);
-            var idx = options.limit.excludeOrg ? "index-outside-org.html" : "index.html";
+            var idx = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
             output = fixOutputLinks(output, outputFile, options);
             fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
                 if (err) {
                     return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
                 }
-                return resolve(options);
+                options.templates.redirect({outputSlugAll:path.basename(outputSlugAll), outputSlugExcludeOrg:path.basename(outputSlugExcludeOrg)}, (err, output) => {
+                    fs.writeFile(outputFileRedirect, output, {encoding: "utf8"}, err => {
+                        if (err) {
+                            return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
+                        }
+                        return resolve(options);
+                    });
+                })
             })
         });
     })
 }
 
 function copyAssets(options) {
+    const outputAssets = path.join(options.userConfig.output_directory, "assets");
     return new Promise((resolve, reject) => {
-        console.log("copyassets");
-        resolve(options);
+        fs.copy("assets", outputAssets, e => {
+            if (e) {
+                return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputAssets));
+            }
+            return resolve(options);
+        });
     })
 }
 
@@ -895,31 +926,6 @@ function frontPage(options) {
                 resolve(options);
             })
             .catch(e => { reject(e); })
-
-        /*
-        runWidgets(Object.assign({}, options), {limitType: "root", value: null})
-            .then(options => {
-                options.templates.front({links: links, widgets: options.htmls}, (err, output) => {
-                    if (err) return reject(err);
-                    const outputFile = path.join(options.userConfig.output_directory, "index.html");
-                    const outputAssets = path.join(options.userConfig.output_directory, "assets");
-                    output = fixOutputLinks(output, outputFile, options);
-                    fs.writeFile(outputFile, output, {encoding: "utf8"}, err => {
-                        if (err) {
-                            return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
-                        }
-                        fs.copy("assets", outputAssets, e => {
-                            if (err) {
-                                return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputAssets));
-                            }
-                            return resolve(options);
-                        });
-                    })
-                })
-
-            })
-            .catch(e => { reject(e); })
-        */
     });
 }
 

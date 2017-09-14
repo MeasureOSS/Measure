@@ -1,5 +1,5 @@
 {{> header.tmpl}}
-    <h2 class="incexcorg"><a href="$$BASEURL$$/{{includeExcludeOrgFilename}}">{{#excludeOrg}}<img src="$$BASEURL$$/assets/img/cross.svg" alt="No: ">{{/excludeOrg}}{{^excludeOrg}}<img src="$$BASEURL$$/assets/img/tick.svg" alt="Yes: ">{{/excludeOrg}}Contributions from the organization included</a></h2>
+    <h2 class="incexcorg"><a href="$$BASEURL$$/{{includeExcludeOrgFilename}}" onclick="setInclude({{#excludeOrg}}'include-org'{{/excludeOrg}}{{^excludeOrg}}'exclude-org'{{/excludeOrg}})">{{#excludeOrg}}<img src="$$BASEURL$$/assets/img/cross.svg" alt="No: ">{{/excludeOrg}}{{^excludeOrg}}<img src="$$BASEURL$$/assets/img/tick.svg" alt="Yes: ">{{/excludeOrg}}Contributions from the organization included</a></h2>
                 {{#widgets}}
                 <article data-widget="{{widget}}"{{#extraClasses}} class="{{extraClasses}}"{{/extraClasses}}>
                     {{{html}}}

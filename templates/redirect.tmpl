@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="5; url={{outputSlugExcludeOrg}}">
+</head>
+<body>
+<p>Loading, please wait...</p>
+<script>
+document.querySelector("p").style.display = "none";
+// read the localStorage setting
+var includeOrg = "{{outputSlugAll}}";
+var excludeOrg = "{{outputSlugExcludeOrg}}";
+var redirect = excludeOrg;
+if (window.localStorage) {
+    var saved = window.localStorage.getItem("jp-redirect");
+    if (saved && saved == "include-org") {
+        redirect = includeOrg;
+    }
+}
+location.href = redirect;
+</script>
+</body>
+</html>

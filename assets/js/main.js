@@ -91,3 +91,9 @@ var flash = (function() {
         if ((a.offsetWidth > pw) && ws == "nowrap" && !a.title) a.title = a.textContent;
     })
 })()
+
+function setInclude(val) {
+    if (window.localStorage) {
+        window.localStorage.setItem("jp-redirect", val);
+    }
+}

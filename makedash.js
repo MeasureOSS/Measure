@@ -174,12 +174,8 @@ function connectToDB(options) {
     })
 }
 
-function getMyOrgUsers(options) {
+function getAllOrgUsers(options) {
     return new Promise((resolve, reject) => {
-        if (!options.userConfig.my_organizations || options.userConfig.my_organizations.length === 0) {
-            // we don't have any orgs defined as ours, so skip
-            return resolve(options);
-        }
         var sqlite3 = require('sqlite3').verbose();
         var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
             if (err) return reject(NICE_ERRORS.COULD_NOT_OPEN_DB(err, options.sqliteDatabase));
@@ -187,20 +183,37 @@ function getMyOrgUsers(options) {
             for (i=0; i<options.userConfig.my_organizations.length; i++) {
                 questionmarks.push("?");
             }
-            var sql = "select p.login from orgs o inner join people2org p " +
-                "on o.id = p.org " +
-                "where lower(o.name) in (" + questionmarks.join(",") + ") " +
-                "and p.left is null";
-            db.all(sql, options.userConfig.my_organizations.map(o => { return o.toLowerCase(); }), (err, results) => {
+            var sql = "select p.login, o.name, o.id as orgid from people2org p left outer join orgs o " +
+                "on o.id = p.org where p.left is null";
+            db.all(sql, [], (err, results) => {
                 db.close();
                 if (err) return reject(err);
-                if (results.length > 0) {
-                    options.myOrgUsers = results.map(r => { return r.login; });
-                }
+                var org2People = {};
+                results.forEach(function(r) {
+                    if (!org2People[r.name.toLowerCase()]) org2People[r.name.toLowerCase()] = [];
+                    org2People[r.name.toLowerCase()].push(r.login)
+                })
+                options.org2People = org2People;
                 return resolve(options);
             })
         });
+    });
+}
 
+function getMyOrgUsers(options) {
+    return new Promise((resolve, reject) => {
+        if (!options.userConfig.my_organizations || options.userConfig.my_organizations.length === 0) {
+            // we don't have any orgs defined as ours, so skip
+            return resolve(options);
+        }
+        options.myOrgUsers = [];
+        options.userConfig.my_organizations.forEach(o => {
+            var people = options.org2People[o.toLowerCase()];
+            if (people) {
+                options.myOrgUsers = options.myOrgUsers.concat(people);
+            }
+        });
+        return resolve(options);
     });
 }
 
@@ -586,6 +599,41 @@ const LIMITS = {
             }
         }
     },
+    org: {
+        user: {
+            find: (userlist,e) => { return {$and: [e, {login: {$in: userlist}}]} }
+        },
+        pull_request: {
+            find: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            count: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            distinct: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            aggregate: (userlist,e) => {
+                var nexisting = e.slice();
+                nexisting.unshift({$match: {"user.login": {$in:userlist}}});
+                return nexisting;
+            }
+        },
+        issue: {
+            find: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            count: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            distinct: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            aggregate: (userlist,e) => {
+                var nexisting = e.slice();
+                nexisting.unshift({$match: {"user.login": {$in:userlist}}});
+                return nexisting;
+            }
+        },
+        issue_comment: {
+            find: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            count: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            distinct: (userlist,e) => { return {$and: [e, {"user.login": {$in:userlist}}]} },
+            aggregate: (userlist,e) => {
+                var nexisting = e.slice();
+                nexisting.unshift({$match: {"user.login": {$in:userlist}}});
+                return nexisting;
+            }
+        }
+    },
     repo: {
         issue: {
             find: (r,e) => { return LIMITS_MATCH(r + "$", e, "repository_url") },
@@ -649,6 +697,8 @@ function url_lookup(user_collection_name, key) {
             return "$$BASEURL$$/contributor/" + key + ".html";
         case "repo":
             return "$$BASEURL$$/repo/" + key + ".html";
+        case "org":
+            return "$$BASEURL$$/org/" + key + ".html";
     }
 }
 
@@ -764,6 +814,8 @@ function assembleDashboard(options) {
             options.limit.value + "-outside-org.html";
         const outputSlugRedirect = options.limit.limitType + "/" + 
             options.limit.value + ".html";
+        const outputSlugTitle = options.limit.limitType + "/" + 
+            (options.limit.title || options.limit.value) + ".html";
         var outputSlug = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
         var writeRedirect = true;
         // special handling for contributors, who don't have inside or outside org
@@ -771,12 +823,18 @@ function assembleDashboard(options) {
             outputSlug = outputSlugRedirect;
             writeRedirect = false;
         }
+        // special handling for orgs, who have a title
+        if (options.limit.limitType == "org") {
+            outputSlug = outputSlugTitle;
+            writeRedirect = false;
+        }
         const outputFile = path.join(options.userConfig.output_directory, outputSlug);
         const outputFileRedirect = path.join(options.userConfig.output_directory, outputSlugRedirect);
         const outputDir = path.dirname(outputFile);
         let tmplvars = {
             widgets: options.htmls,
-            subtitle: options.limit.value,
+            subtitle: options.limit.title || options.limit.value,
+            includeIncExcOrgSwitch: writeRedirect
         };
         if (options.limit.excludeOrg) {
             tmplvars.includeExcludeOrgFilename = outputSlugAll;
@@ -876,7 +934,7 @@ function leave(options) {
     }
 }
 
-function writeFront(options, links) {
+function writeFront(options, links, orgs) {
     return new Promise((resolve, reject) => {
         const outputSlugAll = "index-include-org.html";
         const outputSlugExcludeOrg = "index-outside-org.html";
@@ -884,7 +942,7 @@ function writeFront(options, links) {
         const outputSlug = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
         const outputFile = path.join(options.userConfig.output_directory, outputSlug);
         const outputFileRedirect = path.join(options.userConfig.output_directory, outputSlugRedirect);
-        var tmplvars = {links: links, widgets: options.htmls};
+        var tmplvars = {links: links, widgets: options.htmls, orgs: orgs};
         if (options.limit.excludeOrg) {
             tmplvars.includeExcludeOrgFilename = outputSlugAll;
             tmplvars.excludeOrg = true;
@@ -933,13 +991,19 @@ function frontPage(options) {
                 title: op
             }
         })
+        let orgs = Object.keys(options.org2People).map(org => {
+            return {
+                link: url_lookup("org", org),
+                title: org
+            }
+        })
 
         runWidgets(Object.assign({}, options),  {limitType: "root", value: null})
-            .then(options => { return writeFront(options, links); })
+            .then(options => { return writeFront(options, links, orgs); })
             .then(options => {
                 return runWidgets(Object.assign({}, options),  {limitType: "root", value: null, excludeOrg: true})
             })
-            .then(options => { return writeFront(options, links); })
+            .then(options => { return writeFront(options, links, orgs); })
             .then(copyAssets)
             .then(options => {
                 resolve(options);
@@ -967,6 +1031,24 @@ function dashboardForEachRepo(options) {
         });
 }
 
+function dashboardForEachOrg(options) {
+    return new Promise((resolve, reject) => {
+        async.map(Object.keys(options.org2People), (orgName, done) => {
+            done(null, runWidgets(Object.assign({}, options), {limitType: "org", title: orgName, value: options.org2People[orgName]})
+                .then(assembleDashboard));
+        }, (err, orgMakers) => {
+            if (err) return reject(err);
+            return resolve(options);
+            return Promise.all(orgMakers)
+                .then(function(arrayOfOptions) {
+                    var optionsBase = Object.assign({}, arrayOfOptions[0]);
+                    return optionsBase;
+                });
+        });
+    });
+}
+
+
 function dashboardForEachContributor(options) {
     return options.db.collection("user").find({}, {login:1}).toArray().then(users => {
         var userMakers = users.map(u => {
@@ -990,9 +1072,11 @@ loadTemplates()
     .then(confirmTokens)
     .then(api)
     .then(apidb)
+    .then(getAllOrgUsers)
     .then(getMyOrgUsers)
     .then(dashboardForEachRepo)
     .then(dashboardForEachContributor)
+    .then(dashboardForEachOrg)
     .then(frontPage)
     .then(leave)
     .catch(e => {

@@ -37,7 +37,7 @@ function loadTemplates() {
     dynamically picked up doesn't buy us much.
     */
     const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", 
-        "table", "dl", "notes", "orgs", "redirect"];
+        "table", "dl", "notes", "orgs", "redirect", "fromto"];
 
     return new Promise((resolve, reject) => {
         /*
@@ -558,17 +558,32 @@ const LIMITS = {
         pull_request: {
             find: (u,e) => { return {$and: [e, {"user.login": u}]} },
             count: (u,e) => { return {$and: [e, {"user.login": u}]} },
-            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} }
+            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            aggregate: (u,e) => {
+                var nexisting = e.slice();
+                nexisting.unshift({$match: {"user.login": u}});
+                return nexisting;
+            }
         },
         issue: {
             find: (u,e) => { return {$and: [e, {"user.login": u}]} },
             count: (u,e) => { return {$and: [e, {"user.login": u}]} },
-            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} }
+            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            aggregate: (u,e) => {
+                var nexisting = e.slice();
+                nexisting.unshift({$match: {"user.login": u}});
+                return nexisting;
+            }
         },
         issue_comment: {
             find: (u,e) => { return {$and: [e, {"user.login": u}]} },
             count: (u,e) => { return {$and: [e, {"user.login": u}]} },
-            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} }
+            distinct: (u,e) => { return {$and: [e, {"user.login": u}]} },
+            aggregate: (u,e) => {
+                var nexisting = e.slice();
+                nexisting.unshift({$match: {"user.login": u}});
+                return nexisting;
+            }
         }
     },
     repo: {

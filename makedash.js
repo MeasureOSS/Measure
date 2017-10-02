@@ -763,7 +763,8 @@ function runWidgets(options, limit) {
                 db: colldict, 
                 templates: options.templates, 
                 url: url_lookup,
-                config: options.userConfig
+                config: options.userConfig,
+                org2People: options.org2People
             };
             async.mapSeries(options.widgets[mylimit.limitType], function(widget, done) {
                 try {

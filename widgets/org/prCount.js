@@ -1,1 +1,1 @@
-../repo/10_prCount.js
+../contributor/prCount.js

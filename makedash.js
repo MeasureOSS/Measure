@@ -21,6 +21,10 @@ var db;
 // egrep -oh 'options.db.[a-z_]+' widgets/*/*.js | sed 's/options.db.//g' | sort | uniq
 var EXPECTED_COLLECTIONS = ["issue", "issue_comment", "pull_request", "user"];
 
+
+// Colors to be used by the graphs so they stay consistent
+var COLORS = ["#ff7bac", "#4dced0", "#606469"];
+
 /*
 The way the dashboard is created is this: we have a collection of "widgets",
 which are given access to the ghcrawler database and can do whatever they want,
@@ -37,7 +41,8 @@ function loadTemplates() {
     dynamically picked up doesn't buy us much.
     */
     const TEMPLATES_LIST = ["list", "bignumber", "graph", "dashboard", "front", 
-        "table", "dl", "notes", "orgs", "redirect", "fromto"];
+        "table", "dl", "notes", "orgs", "redirect", "fromto", "repositories",
+        "organizations"];
 
     return new Promise((resolve, reject) => {
         /*
@@ -764,7 +769,9 @@ function runWidgets(options, limit) {
                 templates: options.templates, 
                 url: url_lookup,
                 config: options.userConfig,
-                org2People: options.org2People
+                org2People: options.org2People,
+                COLORS: COLORS,
+                limitedTo: mylimit.value
             };
             async.mapSeries(options.widgets[mylimit.limitType], function(widget, done) {
                 try {
@@ -984,6 +991,48 @@ function copyAssets(options) {
     })
 }
 
+function indexPages(options) {
+    return new Promise((resolve, reject) => {
+        let links = options.userConfig.github_repositories.map(op => {
+            return {
+                link: url_lookup("repo", op),
+                title: op
+            }
+        });
+        const repoOutputFile = path.join(options.userConfig.output_directory, "repositories.html");
+        let orgs = Object.keys(options.org2People).map(org => {
+            return {
+                link: url_lookup("org", org),
+                title: org
+            }
+        });
+        const orgOutputFile = path.join(options.userConfig.output_directory, "organizations.html");
+
+        options.templates.repositories({links:links}, (err, output) => {
+            if (err) return reject(err);
+            output = fixOutputLinks(output, repoOutputFile, options);
+            fs.writeFile(repoOutputFile, output, {encoding: "utf8"}, err => {
+                if (err) {
+                    return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
+                }
+
+                options.templates.organizations({orgs:orgs}, (err, output) => {
+                    if (err) return reject(err);
+                    output = fixOutputLinks(output, orgOutputFile, options);
+                    fs.writeFile(orgOutputFile, output, {encoding: "utf8"}, err => {
+                        if (err) {
+                            return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
+                        }
+                        return resolve(options);
+                    })
+                });
+
+            })
+        });
+
+    })
+}
+
 function frontPage(options) {
     return new Promise((resolve, reject) => {
         let links = options.userConfig.github_repositories.map(op => {
@@ -1079,6 +1128,7 @@ loadTemplates()
     .then(dashboardForEachContributor)
     .then(dashboardForEachOrg)
     .then(frontPage)
+    .then(indexPages)
     .then(leave)
     .catch(e => {
         if (db) db.close();

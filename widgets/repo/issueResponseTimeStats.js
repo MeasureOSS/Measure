@@ -62,15 +62,15 @@ module.exports = function(options, callback) {
                                 datasets: [
                                     {
                                         data: res.monthly.data.map(n => Math.round(n.average.value / 1000 / 60 / 60)),
-                                        borderColor: "#3ccf53",
+                                        borderColor: options.COLORS[0],
                                         label: "Average (hrs)"
                                     }, {
                                         data: res.monthly.data.map(n => Math.round(n.median.value / 1000 / 60 / 60)),
-                                        borderColor: "#AC8D1C",
+                                        borderColor: options.COLORS[1],
                                         label: "Median (hrs)"
                                     }, {
                                         data: res.monthly.data.map(n => Math.round(n.pc95.value / 1000 / 60 / 60)),
-                                        borderColor: "#4150F8",
+                                        borderColor: options.COLORS[2],
                                         label: "95th percentile (hrs)"
                                     }
                                 ]
@@ -81,15 +81,15 @@ module.exports = function(options, callback) {
                                 datasets: [
                                     {
                                         data: res.weekly.data.map(n => Math.round(n.average.value / 1000 / 60 / 60)),
-                                        borderColor: "#3ccf53",
+                                        borderColor: options.COLORS[0],
                                         labels: "Average"
                                     }, {
                                         data: res.weekly.data.map(n => Math.round(n.median.value / 1000 / 60 / 60)),
-                                        borderColor: "#AC8D1C",
+                                        borderColor: options.COLORS[1],
                                         label: "Median (hrs)"
                                     }, {
                                         data: res.weekly.data.map(n => Math.round(n.pc95.value / 1000 / 60 / 60)),
-                                        borderColor: "#4150F8",
+                                        borderColor: options.COLORS[2],
                                         label: "95th percentile (hrs)"
                                     }
                                 ]
@@ -97,9 +97,17 @@ module.exports = function(options, callback) {
                         }
                     },
                     options: {
+                        legend: {
+                            display: true,
+                            position: "top",
+                            labels: {
+                                boxWidth: 2,
+                                fontSize: 8
+                            }
+                        },
                         scales: {
-                            xAxes: [{display: true}],
-                            yAxes: [{display: false}]
+                            xAxes: [{display: true, gridLines: {display: false}}],
+                            yAxes: [{display: true, gridLines: {color: "#666666"}, ticks: {fontColor: "white"}}]
                         },
                         annotation: hoursToRespondLine
                     }

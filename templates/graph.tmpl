@@ -1,6 +1,6 @@
 <section class="graph">
 <h1>{{title}}</h1>
-<div class="chart-container" style="position: relative; width: 100%"><canvas width="200" height="150" id="{{unique_id}}"></canvas></div>
+<div class="chart-container" style="position: relative; width: 100%"><canvas width="200" height="120" id="{{unique_id}}"></canvas></div>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     new Chart(document.getElementById("{{unique_id}}"), {{{graphdata}}});

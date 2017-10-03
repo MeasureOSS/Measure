@@ -1,0 +1,10 @@
+{{> mainlessheader.tmpl}}
+    <section>
+        <h1>Organizations</h1>
+        <ul class="repolist">
+        {{#orgs}}
+        <li><a href="{{link}}">{{title}}</a></li>
+        {{/orgs}}
+        </ul>
+    </section>
+{{> footer.tmpl}}

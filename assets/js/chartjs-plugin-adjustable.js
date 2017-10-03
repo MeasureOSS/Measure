@@ -79,11 +79,8 @@ Chart.plugins.register({
                 li.appendChild(lbl);
                 ul.appendChild(li);
             })
-            if (c.canvas.nextElementSibling) {
-                c.canvas.parentNode.insertBefore(ul, c.canvas.nextElementSibling);
-            } else {
-                c.canvas.parentNode.appendChild(ul);
-            }
+            console.log("haha before");
+            c.canvas.parentNode.insertBefore(ul, c.canvas);
             if (!defaultKey) {
                 defaultKey = Object.keys(c.config.data.adjustable)[0];
                 keysToRadio[defaultKey].checked = true;

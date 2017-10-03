@@ -14,7 +14,7 @@ module.exports = function(options, callback) {
                     datasets: [
                         {
                             data: result.map(n => n.issue_count),
-                            borderColor: "#3ccf53",
+                            borderColor: options.COLORS[0],
                             borderWidth: 2,
                             pointStyle: "rect"
                         }

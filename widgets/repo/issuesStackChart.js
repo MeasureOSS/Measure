@@ -1,6 +1,6 @@
 const moment = require("moment");
 
-function groupby(result, keyFormat, labelFormat, durationStep, linkBase) {
+function groupby(result, keyFormat, labelFormat, durationStep, linkBase, options) {
     if (result.length == 0) { return {labels:[], datasets: []}; };
 
     var minGroup = "zzzzzz";
@@ -30,12 +30,12 @@ function groupby(result, keyFormat, labelFormat, durationStep, linkBase) {
         datasets: [{
             label: "Opened issues",
             data: datasets.open,
-            backgroundColor: "#3ccf53",
+            backgroundColor: options.COLORS[0],
             links: links.open
         }, {
             label: "Closed issues",
             data: datasets.closed,
-            backgroundColor: "#AC8D1C",
+            backgroundColor: options.COLORS[2],
             links: links.closed
         }]
     }
@@ -59,7 +59,7 @@ module.exports = function(options, callback) {
         ], (err, result) => {
             if (err) return callback(err);
 
-            var monthlyValues = groupby(result, "YYYY-MM", "MM-YYYY", "month", linkBase);
+            var monthlyValues = groupby(result, "YYYY-MM", "MM-YYYY", "month", linkBase, options);
             monthlyValues.minimumLength = 5;
 
             /* get issue counts by day */
@@ -75,7 +75,7 @@ module.exports = function(options, callback) {
             ], (err, result) => {
                 if (err) return callback(err);
 
-                var weeklyValues = groupby(result, "YYYY-ww", "ww-YYYY", "week", linkBase);
+                var weeklyValues = groupby(result, "YYYY-ww", "ww-YYYY", "week", linkBase, options);
                 weeklyValues.minimumLength = 5;
 
                 var graph = {

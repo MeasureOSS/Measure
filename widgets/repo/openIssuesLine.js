@@ -62,7 +62,7 @@ module.exports = function(options, callback) {
                             labels: monthlyValues.map(n => { return n[0]; }),
                             datasets: [{
                                 data: monthlyValues.map(n => { return n[1]; }),
-                                borderColor: "#3ccf53",
+                                borderColor: options.COLORS[0],
                                 borderWidth: 2,
                                 pointStyle: "rect"
                             }]
@@ -72,7 +72,7 @@ module.exports = function(options, callback) {
                             labels: weeklyValues.map(n => { return n[0]; }),
                             datasets: [{
                                 data: weeklyValues.map(n => { return n[1]; }),
-                                borderColor: "#3ccf53",
+                                borderColor: options.COLORS[0],
                                 borderWidth: 2,
                                 pointStyle: "rect"
                             }]

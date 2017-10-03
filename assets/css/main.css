@@ -382,12 +382,13 @@ input[type=range].adjustable-graph-slider::-webkit-slider-runnable-track {
 input[type=range].adjustable-graph-slider::-webkit-slider-thumb {
   border-width: 0;
   height: 26px;
-  width: 16px;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.8);
+  width: 26px;
+  border-radius: 100px;
+  background: #606469;
   cursor: pointer;
   -webkit-appearance: none;
   margin-top: -12px;
+  box-shadow: 4px 4px 9px rgba(0,0,0,0.5);
 }
 input[type=range].adjustable-graph-slider:focus::-webkit-slider-runnable-track {
   background: white;

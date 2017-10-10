@@ -170,7 +170,7 @@ function connectToDB(options) {
     */
     return new Promise((resolve, reject) => {
         var url = 'mongodb://localhost:27017/ghcrawler';
-        MongoClient.connect(url, function(err, mdb) {
+        MongoClient.connect(url, {connectTimeoutMS: 6000, keepAlive: 5000}, function(err, mdb) {
             if (err) return reject(NICE_ERRORS.NO_MONGO_ERROR(err));
             db = mdb;
             //console.log("Connected correctly to server.");
@@ -707,6 +707,9 @@ function url_lookup(user_collection_name, key) {
     }
 }
 
+var QUERY_CACHE = {};
+var CACHE_STATS = {hits:0, misses:0, has_fn: 0, no_fn: 0};
+
 function runWidgets(options, limit) {
     /*
     For each of our loaded widgets, we pass it the database connection information
@@ -741,6 +744,18 @@ function runWidgets(options, limit) {
                             let argIndex = 0;
                             if (method == "distinct") { argIndex = 1; } // bit of a hack, this.
                             nargs[argIndex] = fixQuery(limit.value, nargs[argIndex]);
+                            var nnargs = nargs.filter(n=>{ return typeof(n) != "function"; });
+                            if (nnargs.length == nargs.length) { CACHE_STATS.no_fn += 1 } else { CACHE_STATS.has_fn += 1 }
+                            var CACHE_KEY = [collname, nnargs];
+                            CACHE_KEY = JSON.stringify(CACHE_KEY, (k,v) => {
+                                return v instanceof RegExp ? "__REGEXP " + v.toString() : v;
+                            });
+                            if (QUERY_CACHE[CACHE_KEY] && (nnargs.length == nargs.length)) {
+                                CACHE_STATS.hits += 1;
+                            } else {
+                                CACHE_STATS.misses += 1;
+                                QUERY_CACHE[CACHE_KEY]="y";
+                            }
                             return orig.apply(coll, nargs);
                         }
                     })
@@ -842,7 +857,10 @@ function assembleDashboard(options) {
         let tmplvars = {
             widgets: options.htmls,
             subtitle: options.limit.title || options.limit.value,
-            includeIncExcOrgSwitch: writeRedirect
+            includeIncExcOrgSwitch: writeRedirect,
+            isOverview: options.limit.limitType == "root",
+            isRepository: options.limit.limitType == "repo" || options.limit.limitType == "contributor",
+            isOrganization: options.limit.limitType == "org"
         };
         if (options.limit.excludeOrg) {
             tmplvars.includeExcludeOrgFilename = outputSlugAll;
@@ -939,6 +957,8 @@ function leave(options) {
             return n[0] + ": " + Math.round(n[1] / 1000) + "s total in " + 
                 n[2] + " iterations, " + Math.round(n[1] / n[2]) + "ms/iteration"; 
         }).join("\n"));
+        console.log(util.inspect(QUERY_CACHE,{depth:null}));
+        console.log(CACHE_STATS);
     }
 }
 
@@ -950,7 +970,7 @@ function writeFront(options, links, orgs) {
         const outputSlug = options.limit.excludeOrg ? outputSlugExcludeOrg : outputSlugAll;
         const outputFile = path.join(options.userConfig.output_directory, outputSlug);
         const outputFileRedirect = path.join(options.userConfig.output_directory, outputSlugRedirect);
-        var tmplvars = {links: links, widgets: options.htmls, orgs: orgs};
+        var tmplvars = {links: links, widgets: options.htmls, orgs: orgs, isOverview: true};
         if (options.limit.excludeOrg) {
             tmplvars.includeExcludeOrgFilename = outputSlugAll;
             tmplvars.excludeOrg = true;
@@ -1008,7 +1028,7 @@ function indexPages(options) {
         });
         const orgOutputFile = path.join(options.userConfig.output_directory, "organizations.html");
 
-        options.templates.repositories({links:links}, (err, output) => {
+        options.templates.repositories({links:links, isRepository:true}, (err, output) => {
             if (err) return reject(err);
             output = fixOutputLinks(output, repoOutputFile, options);
             fs.writeFile(repoOutputFile, output, {encoding: "utf8"}, err => {
@@ -1016,7 +1036,7 @@ function indexPages(options) {
                     return reject(NICE_ERRORS.COULD_NOT_WRITE_OUTPUT(err, outputFile));
                 }
 
-                options.templates.organizations({orgs:orgs}, (err, output) => {
+                options.templates.organizations({orgs:orgs, isOrganization:true}, (err, output) => {
                     if (err) return reject(err);
                     output = fixOutputLinks(output, orgOutputFile, options);
                     fs.writeFile(orgOutputFile, output, {encoding: "utf8"}, err => {

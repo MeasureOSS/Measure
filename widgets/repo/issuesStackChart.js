@@ -84,8 +84,8 @@ module.exports = function(options, callback) {
                         type: "bar",
                         data: {
                             adjustable: {
-                                monthly: monthlyValues,
-                                weekly: weeklyValues,
+                                Monthly: monthlyValues,
+                                Weekly: weeklyValues,
                             }
                         },
                         options: {

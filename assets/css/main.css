@@ -255,18 +255,25 @@ nav + nav li a::before {
     background-repeat: no-repeat;
     background-size: contain;
     content: "";
-    vertical-align: bottom;
+    vertical-align: middle;
+    margin-top: -2px;
 }
-nav + nav li a.nav-repos::before {
-  background-image: url(../img/Dashboards.svg);
+/*
+Noun Project:
+https://thenounproject.com/term/company-organization/748326
+https://thenounproject.com/term/dashboard/1237026
+https://thenounproject.com/term/statistics/789906
+*/
+nav + nav li a.nav-repos::before { background-image: url(../img/Dashboards.svg); height: 18px; width: 18px; }
+nav + nav li a.nav-orgs::before { background-image: url(../img/Groups.svg); }
+nav + nav li a.nav-overview::before { background-image: url(../img/Overview.svg); }
+nav + nav li a.highlight span {
+    border-bottom: 2px solid #4dced0;
+    padding-bottom: 1px;
 }
-nav li a.nav-orgs::before { 
-    background-image: url(../img/Groups.svg);
-}
-nav li a.nav-overview::before { 
-    background-image: url(../img/Overview.svg);
-}
-
+nav + nav li a.highlight.nav-repos::before { background-image: url(../img/Dashboards-highlighted.svg); }
+nav + nav li a.highlight.nav-orgs::before { background-image: url(../img/Groups-highlighted.svg); }
+nav + nav li a.highlight.nav-overview::before { background-image: url(../img/Overview-highlighted.svg); }
 
 section.list li {
     list-style: none;
@@ -475,7 +482,7 @@ ul.adjustable-graph-chooser li {
 ul.adjustable-graph-chooser li input { display: none; }
 ul.adjustable-graph-chooser li label {
     display: inline-block;
-    padding: 0.3em 0.5em;
+    padding: 0.3em 0.5em 0;
 }
 ul.adjustable-graph-chooser li input:checked + label {
     color: #4dced0;
@@ -494,6 +501,7 @@ h2.incexcorg a {
 h2.incexcorg img {
   vertical-align: top;
   height: 24px;
+  margin-left: 5px;
 }
 
 /* ==========================================================================

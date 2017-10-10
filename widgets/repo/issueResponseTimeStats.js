@@ -55,7 +55,7 @@ module.exports = function(options, callback) {
                     type: "line",
                     data: {
                         adjustable: {
-                            monthly: {
+                            Monthly: {
                                 default: true,
                                 minimumLength: 5,
                                 labels: res.monthly.labels,
@@ -75,7 +75,7 @@ module.exports = function(options, callback) {
                                     }
                                 ]
                             },
-                            weekly: {
+                            Weekly: {
                                 minimumLength: 5,
                                 labels: res.weekly.labels,
                                 datasets: [

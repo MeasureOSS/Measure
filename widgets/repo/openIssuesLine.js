@@ -56,7 +56,7 @@ module.exports = function(options, callback) {
                 type: "line",
                 data: {
                     adjustable: {
-                        monthly: {
+                        Monthly: {
                             minimumLength: 5,
                             default: true,
                             labels: monthlyValues.map(n => { return n[0]; }),
@@ -67,7 +67,7 @@ module.exports = function(options, callback) {
                                 pointStyle: "rect"
                             }]
                         },
-                        weekly: {
+                        Weekly: {
                             minimumLength: 5,
                             labels: weeklyValues.map(n => { return n[0]; }),
                             datasets: [{

@@ -34,9 +34,9 @@ module.exports = function(options, callback) {
             bignumber: counts.openNowCount,
             unit: "Pull Requests",
             changename: moment().format("MMMM"),
-            changeamount: diff,
-            link: link
-        }
+            changeamount: diff
+        };
+        if (options.limitedTo) result.link = link; // so we don't get a link on the root page
         options.templates.bignumber(result, callback);
     }).catch(e => { callback(e); });
 }

@@ -957,8 +957,8 @@ function leave(options) {
             return n[0] + ": " + Math.round(n[1] / 1000) + "s total in " + 
                 n[2] + " iterations, " + Math.round(n[1] / n[2]) + "ms/iteration"; 
         }).join("\n"));
-        console.log(util.inspect(QUERY_CACHE,{depth:null}));
-        console.log(CACHE_STATS);
+        //console.log(util.inspect(QUERY_CACHE,{depth:null}));
+        //console.log(CACHE_STATS);
     }
 }
 

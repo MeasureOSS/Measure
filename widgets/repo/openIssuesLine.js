@@ -80,9 +80,17 @@ module.exports = function(options, callback) {
                     }
                 },
                 options: {
+                    legend: {
+                        display: true,
+                        position: "top",
+                        labels: {
+                            boxWidth: 2,
+                            fontSize: 8
+                        }
+                    },
                     scales: {
-                        xAxes: [{}],
-                        yAxes: [{display: false}]
+                        xAxes: [{display: true, gridLines: {display: false}}],
+                        yAxes: [{display: true, gridLines: {color: "#666666"}, ticks: {fontColor: "white"}}]
                     }
                 }
             })

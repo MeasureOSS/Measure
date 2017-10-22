@@ -89,9 +89,17 @@ module.exports = function(options, callback) {
                             }
                         },
                         options: {
+                            legend: {
+                                display: true,
+                                position: "top",
+                                labels: {
+                                    boxWidth: 2,
+                                    fontSize: 8
+                                }
+                            },
                             scales: {
-                                xAxes: [{stacked: true}],
-                                yAxes: [{display: false, stacked: true}]
+                                xAxes: [{display: true, stacked: true, gridLines: {display: false}}],
+                                yAxes: [{display: false, stacked: true, gridLines: {color: "#666666"}, ticks: {fontColor: "white"}}]
                             }
                         }
                     })

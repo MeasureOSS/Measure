@@ -1,6 +1,12 @@
 # MeasureOSS
 
+MeasureOSS is the working name for this prototype. We don't like the name either, and we're busy thinking of a better one.
+
 ## What is MeasureOSS?
+
+MeasureOSS is a simple widget based dashboard that takes a contributor-focused view of open source community analytics.
+
+## Philosophy
 
 ## This is a prototype
 
@@ -36,10 +42,10 @@ and teach the crawler about your repositories:
 ```
 cd ghcrawler-cli
 npm install # you only need to do this the first time
-node bin/cc orgs stuartlangridge DataDog
+node bin/cc orgs yourorg # e.g., MeasureOSS
 node bin/cc tokens "<your github token>#private" # the quotes are important here
-node bin/cc queue agithubid/agithubrepo # e.g., stuartlangridge/sorttable
-node bin/cc start 5
+node bin/cc queue agithubid/agithubrepo # e.g., MeasureOSS/Measure
+node bin/cc start 8
 ```
 
 Check out the dash maker:

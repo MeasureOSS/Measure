@@ -6,6 +6,8 @@ MeasureOSS is the working name for this prototype. We don't like the name either
 
 MeasureOSS is a simple widget based dashboard that takes a contributor-focused view of open source community analytics.
 
+Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master/assets/img/MeasureOSS-demo.png)
+
 ## Philosophy
 
 ## This is a prototype

@@ -1,4 +1,18 @@
-# Contributor dashboard
+# MeasureOSS
+
+MeasureOSS is the working name for this prototype. We don't like the name either, and we're busy thinking of a better one.
+
+## What is MeasureOSS?
+
+MeasureOSS is a simple widget based dashboard that takes a contributor-focused view of open source community analytics.
+
+Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master/assets/img/MeasureOSS-demo.png)
+
+## Philosophy
+
+## This is a prototype
+
+Please be aware that this is beta quality software. That said, we welcome your feedback on both the concept and implementation. Additionally, the metrics we track are still being decided. Feel free to use the issue tracker to suggest the addition, removal, or modification of widgets. 
 
 ## Initial setup
 
@@ -30,16 +44,16 @@ and teach the crawler about your repositories:
 ```
 cd ghcrawler-cli
 npm install # you only need to do this the first time
-node ./bin/cc orgs stuartlangridge DataDog
+node bin/cc orgs yourorg # e.g., MeasureOSS
 node bin/cc tokens "<your github token>#private" # the quotes are important here
-node bin/cc queue agithubid/agithubrepo # e.g., stuartlangridge/sorttable
-node bin/cc start 5
+node bin/cc queue agithubid/agithubrepo # e.g., MeasureOSS/Measure
+node bin/cc start 8
 ```
 
 Check out the dash maker:
 
 ```
-git clone git@bitbucket.org:stuartlangridge/makedash-ghcrawler.git # that's this repo, so if you've already got it, just go to it
+Clone this repo
 npm install # only need this the first time
 cp config.yaml.example config.yaml
 # edit config.yaml to contain your list of repositories

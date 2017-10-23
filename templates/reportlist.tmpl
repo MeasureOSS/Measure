@@ -1,0 +1,9 @@
+{{> mainlessheader.tmpl}}
+            <div class="main wrapper clearfix report">
+                <ul>
+                {{#reports}}
+                    <li><a href="$$BASEURL$$/reports/{{slug}}.html">{{title}}</a></li>
+                {{/reports}}
+                </ul>
+            </div>
+{{> footer.tmpl}}

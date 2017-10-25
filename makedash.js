@@ -17,6 +17,7 @@ const dashboards = require('./lib/dashboards');
 const pages = require('./lib/pages');
 const loads = require('./lib/loads');
 const checking = require('./lib/checking');
+const NICE_ERRORS = require('./lib/nice_errors');
 
 if (!Object.entries) { entries.shim(); }
 

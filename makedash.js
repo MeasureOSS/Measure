@@ -18,6 +18,7 @@ const pages = require('./lib/pages');
 const loads = require('./lib/loads');
 const checking = require('./lib/checking');
 const NICE_ERRORS = require('./lib/nice_errors');
+const query_cache = require('./lib/query_cache');
 
 if (!Object.entries) { entries.shim(); }
 
@@ -64,7 +65,6 @@ function getAllOrgUsers(options) {
                 // widgets use them to look up entries in org2People, it works
                 options.userConfig.my_organizations = options.userConfig.my_organizations.map(n => n.toLowerCase());
 
-                console.log("org2people", org2People)
                 return resolve(options);
             })
         });
@@ -152,6 +152,7 @@ function leave(options) {
             return n[0] + ": " + Math.round(n[1] / 1000) + "s total in " + 
                 n[2] + " iterations, " + Math.round(n[1] / n[2]) + "ms/iteration"; 
         }).join("\n"));
+        require('./lib/query_cache').dump();
     }
 }
 
@@ -167,6 +168,7 @@ loads.loadTemplates()
     .then(apidb)
     .then(getAllOrgUsers)
     .then(getMyOrgUsers)
+    .then(query_cache.prepopulate)
     .then(dashboards.dashboardForEachRepo)
     .then(dashboards.dashboardForEachContributor)
     .then(dashboards.dashboardForEachOrg)

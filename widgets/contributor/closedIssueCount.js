@@ -1,7 +1,7 @@
 const moment = require("moment");
 
 module.exports = function(options, callback) {
-    const oneMonthAgo = moment().add(-1, "month").toISOString();
+    const oneMonthAgo = moment().add(-1, "month").minute(0).second(0).millisecond(0).toISOString();
     let counts = {};
 
     if (!options.db.issue) {

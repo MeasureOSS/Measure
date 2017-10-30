@@ -6,7 +6,7 @@ module.exports = function(options, callback) {
             var allUsers = new Set(issueUsers.concat(issueCommentUsers));
             var hasOrg = new Set();
             for (var k in options.org2People) {
-                options.org2People[k].forEach(p => { hasOrg.add(p); })
+                options.org2People[k].forEach(p => { hasOrg.add(p.login); })
             }
             var noOrg = [...allUsers].filter(x => !hasOrg.has(x));
             noOrg.sort();

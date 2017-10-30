@@ -140,6 +140,10 @@ body {
     font-weight: 300;
 }
 
+section button, section input, section select {
+  color: black;
+}
+
 .main {
   display: grid;
   grid-gap: 10px;

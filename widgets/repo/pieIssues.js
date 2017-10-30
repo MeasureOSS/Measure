@@ -1,26 +1,51 @@
+var moment = require("moment");
 module.exports = function(options, callback) {
-    /* Work out how many PRs are open now */
-    var counts = {};
-    var orgUsers = [];
+    /* Issues who were opened by someone who at the time was
+       a member of one of our orgs */
+    var orgUsers = {};
+    var orgUserNames = new Set();
     (options.config.my_organizations || []).forEach(orgName => {
         var orgPeople = options.org2People[orgName];
         if (orgPeople) {
-            orgUsers = orgUsers.concat(orgPeople);
+            orgPeople.forEach(p => {
+                if (!orgUsers[p.login]) orgUsers[p.login] = [];
+                orgUsers[p.login].push({
+                    joined: moment(p.joined),
+                    left: p.left ? moment(p.left) : moment()
+                })
+                orgUserNames.add(p.login);
+            })
         }
     });
-    options.db.issue.count({state: "open"}).then(openTotal => {
-        counts.openTotal = openTotal;
-        return options.db.issue.count({state: "open", "user.login": {$in: orgUsers}});
-    }).then(openOrg => {
-        counts.openOrg = openOrg;
+
+    options.db.issue.find({state: "open"},{"user.login":1,created_at:1}).toArray().then(openIssues => {
+        var openedByOrg = 0, openedNotByOrg = 0;
+        openIssues.forEach(i => {
+            if (orgUserNames.has(i.user.login)) {
+                var ci = moment(i.created_at);
+                var isin = false;
+                orgUsers[i.user.login].forEach(daterange => {
+                    if (ci.isAfter(daterange.joined) && ci.isBefore(daterange.left)) {
+                        isin = true;
+                    }
+                })
+                if (isin) {
+                    openedByOrg += 1;
+                } else {
+                    openedNotByOrg += 1;
+                }
+            } else {
+                openedNotByOrg += 1;
+            }
+        });
         var graph = {
             title: "Open issues",
             graphdata: JSON.stringify({
                 type: "doughnut",
                 data: {
-                    labels: ["Outside the organizations", "Inside the organizations"],
+                    labels: ["Outside:", "Inside:"],
                     datasets: [{
-                        data: [counts.openTotal - counts.openOrg, openOrg],
+                        data: [openedNotByOrg, openedByOrg],
                         backgroundColor: [options.COLORS[0], options.COLORS[1]]
                     }]
                 }

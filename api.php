@@ -17,8 +17,8 @@ $queries = array(
         "verb" => "POST"
     ),
     "addToOrg" => array(
-        "sql" => "insert into people2org (login, org) values (:login, :org)",
-        "params" => array("login", "org"),
+        "sql" => "insert into people2org (login, org, joined, left) values (:login, :org, :joined, :left)",
+        "params" => array("login", "org", "joined", "left"),
         "return" => "insertid",
         "verb" => "POST"
     ),

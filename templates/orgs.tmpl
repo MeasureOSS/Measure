@@ -1,13 +1,161 @@
 <section class="orgs" data-login="{{login}}">
 <h1>Organizations</h1>
-<button>Add to an org</button>
-<div class="cont"></div>
-<ul class="them"></ul>
+<ul class="orgsin"></ul>
+<hr>
+<details>
+    <summary>Add to an org</summary>
+    <div class="orgadder">
+        <label for="orgslist">Org name</label>
+        <select name="orgslist"></select>
+        <label for="neworg">Or new</label>
+        <input name="neworg">
+        <label for="start">Start date</label>
+        <input type="date" name="org-start">
+        <label for="end">End date</label>
+        <input type="date" name="org-end">
+        <button>Add {{login}} to organization</button>
+    </div>
+</details>
 </section>
-<script src="$$BASEURL$$/assets/js/awesomplete.js"></script>
-<link rel="stylesheet" href="$$BASEURL$$/assets/css/awesomplete.css">
 <script>
 (function() {
+    var ns = document.querySelector("section.orgs");
+    var login = ns.getAttribute("data-login");
+    var orgsin = document.querySelector("ul.orgsin");
+    var deets = ns.querySelector("details");
+    var orglist = ns.querySelector("select");
+    var addbtn = ns.querySelector("button");
+    var neworg = document.getElementsByName("neworg")[0];
+    var joined = document.getElementsByName("org-start")[0];
+    var left = document.getElementsByName("org-end")[0];
+
+    function enableDisableButton() {
+        if (neworg.value == "" && orglist.selectedIndex == 0) {
+            addbtn.disabled = true;
+            addbtn.title = "Select an organization first";
+        } else {
+            addbtn.disabled = false;
+            addbtn.title = "";
+        }
+    }
+
+    deets.addEventListener("toggle", function(e) {
+        if (!e.target.open) return;
+        orglist.innerHTML = "";
+        API("GET", "getAllOrgs", {}, function(err, allorgs) {
+            if (err) return flash(err);
+            if (!allorgs.success) return flash("Couldn't fetch organizations");
+            var frag = document.createDocumentFragment();
+            var op = document.createElement("option");
+            op.value = "-1";
+            op.text = "Choose an org";
+            frag.appendChild(op);
+            allorgs.rows.forEach(function(o) {
+                var op = document.createElement("option");
+                op.value = o.id;
+                op.text = o.name;
+                frag.appendChild(op);
+            });
+            orglist.appendChild(frag);
+            enableDisableButton()
+        });
+    }, false);
+
+    function fdate(d) { return d.split(" ")[0]; }
+    function updateOrgs() {
+        API("GET", "getMyOrgs", {login: login}, function(err, orgs) {
+            if (err) return flash(err);
+            if (!orgs.success) return flash("Couldn't fetch organizations");
+            orgsin.innerHTML = "";
+            var frag = document.createDocumentFragment();
+            orgs.rows.forEach(function(o) {
+                var li = document.createElement("li");
+                var adel = document.createElement("a");
+                adel.href = "#";
+                adel.appendChild(document.createTextNode("×"));
+                adel.onclick = function(e) {
+                    e.preventDefault();
+                    API("POST", "removeFromOrg", {login: login, org: o.id}, function(err) {
+                        if (err) return flash("Couldn't remove from org", err);
+                        updateOrgs();
+                    })
+                }
+                var strong = document.createElement("strong");
+                var em = document.createElement("em");
+                strong.appendChild(document.createTextNode(o.name));
+                var dstr = "(" + fdate(o.joined) + "—";
+                em.appendChild(document.createTextNode(dstr));
+                if (o.left) {
+                    em.appendChild(document.createTextNode(fdate(o.left)));
+                } else {
+                    var aend = document.createElement("a");
+                    aend.href = "#";
+                    aend.appendChild(document.createTextNode("date"));
+                    em.appendChild(aend);
+                    aend.onclick = function(e) {
+                        e.preventDefault();
+                        API("POST", "leaveOrg", {login: login, org: o.id}, function(err) {
+                            if (err) return flash("Couldn't leave org", err);
+                            updateOrgs();
+                        })
+                    }
+                }
+                em.appendChild(document.createTextNode(")"));
+                li.appendChild(strong);
+                li.appendChild(adel);
+                li.appendChild(em);
+                frag.appendChild(li);
+            })
+            orgsin.appendChild(frag);
+        });
+    }
+
+    orglist.onchange = enableDisableButton;
+    neworg.onkeyup = enableDisableButton;
+
+    addbtn.onclick = function() {
+        var orgid;
+        if (orglist.selectedIndex !== 0) {
+            orgid = orglist.options[orglist.selectedIndex].value;
+        }
+        if (neworg.value != "") {
+            // check if they've entered a name that's already in the list
+            var matches = Array.prototype.slice.call(orglist.options).filter(function(o) {
+                return o.text.toLowerCase() == neworg.value.trim();
+            })
+            if (matches.length > 0) {
+                orgid = matches[0].value;
+            }
+        }
+        if (orgid) {
+            console.log("add to org id", orgid);
+            API("POST", "addToOrg", {login: login, org: orgid, joined: joined.value, left: left.value}, function(err) {
+                if (err) { return flash("Couldn't add " + login + " to org", err); }
+                updateOrgs();
+                deets.open = false;
+            })
+        } else if (neworg.value) {
+            console.log("add to new org", neworg.value);
+            API("POST", "addOrg", {name: neworg.value}, function(err, ret) {
+                if (err) { return flash("Couldn't add " + login + " to org", err); }
+                if (!ret.insert_id) { return flash("Couldn't add " + login + " to org", err); }
+                API("POST", "addToOrg", {login: login, org: ret.insert_id, joined: joined.value, left: left.value}, function(err) {
+                    if (err) { return flash("Couldn't add " + login + " to org", err); }
+                    updateOrgs();
+                    deets.open = false;
+                })
+            })
+        } else {
+            // shouldn't ever get here because we should be disabled
+            flash("Unable to add to organization");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", updateOrgs, false);
+})();
+
+(function() {
+    return;
     var ns = document.querySelector("section.orgs");
     var login = ns.getAttribute("data-login");
     var them = ns.querySelector("ul.them");
@@ -144,51 +292,28 @@
 })();
 </script>
 <style>
-section.orgs .cont {
-    display: flex;
-    flex-direction: row;
-}
-section.orgs .dropdown-input {
-    border: 1px solid black;
-    border-radius: 4px 0 0 4px;
-    height: 32px;
-    box-sizing: border-box;
-    padding: 0.1em 0.3em;
-    flex: 1;
-}
-section.orgs .dropdown-btn {
-    vertical-align: top;
-    height: 32px;
-    border-radius: 0 4px 4px 0;
-    border: 1px solid black;
-    margin: 0;
-    flex: 0;
-}
-
-section.orgs .dropdown-btn span {
-    display: inline-block;
-    width: 0;
-    height: 0;
-    margin-left: 2px;
-    vertical-align: middle;
-    border-top: 4px dashed;
-    border-top: 4px solid;
-    border-right: 4px solid transparent;
-    border-left: 4px solid transparent;
-}
-
-section.orgs ul.them {
+section.orgs ul.orgsin {
     margin: 0;
     padding: 0;
 }
-section.orgs ul.them li {
-    margin: 0;
+section.orgs ul.orgsin li {
     padding: 0;
     list-style: none;
 }
-section.orgs ul.them em {
+section.orgs ul.orgsin em {
     display: block;
 }
 
+section.orgs div.orgadder {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 10px;
+}
+section.orgs div.orgadder button {
+    grid-column: 1 / 3;
+}
+section.orgs div.orgadder button[disabled] {
+    color: rgba(0,0,0,0.4);
+}
 
 </style>

@@ -48,15 +48,15 @@ function getAllOrgUsers(options) {
             for (i=0; i<options.userConfig.my_organizations.length; i++) {
                 questionmarks.push("?");
             }
-            var sql = "select p.login, o.name, o.id as orgid from people2org p left outer join orgs o " +
-                "on o.id = p.org where p.left is null";
+            var sql = "select p.login, p.joined, p.left, o.name, o.id as orgid from people2org p left outer join orgs o " +
+                "on o.id = p.org";
             db.all(sql, [], (err, results) => {
                 db.close();
                 if (err) return reject(err);
                 var org2People = {};
                 results.forEach(function(r) {
                     if (!org2People[r.name.toLowerCase()]) org2People[r.name.toLowerCase()] = [];
-                    org2People[r.name.toLowerCase()].push(r.login)
+                    org2People[r.name.toLowerCase()].push({login: r.login, joined: r.joined, left: r.left});
                 })
                 options.org2People = org2People;
 

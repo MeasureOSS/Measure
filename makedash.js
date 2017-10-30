@@ -64,7 +64,6 @@ function getAllOrgUsers(options) {
                 // widgets use them to look up entries in org2People, it works
                 options.userConfig.my_organizations = options.userConfig.my_organizations.map(n => n.toLowerCase());
 
-                console.log("org2people", org2People)
                 return resolve(options);
             })
         });

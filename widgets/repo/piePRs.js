@@ -8,11 +8,13 @@ module.exports = function(options, callback) {
             orgUsers = orgUsers.concat(orgPeople);
         }
     });
+    console.log("pieprs");
     options.db.pull_request.count({state: "open"}).then(openTotal => {
         counts.openTotal = openTotal;
-        return options.db.pull_request.count({state: "open", "user.login": {$nin: orgUsers}});
+        return options.db.pull_request.count({state: "open", "user.login": {$in: orgUsers}});
     }).then(openOrg => {
         counts.openOrg = openOrg;
+        console.log(counts);
         var graph = {
             title: "Open PRs",
             graphdata: JSON.stringify({

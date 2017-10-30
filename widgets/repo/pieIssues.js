@@ -10,7 +10,7 @@ module.exports = function(options, callback) {
     });
     options.db.issue.count({state: "open"}).then(openTotal => {
         counts.openTotal = openTotal;
-        return options.db.issue.count({state: "open", "user.login": {$nin: orgUsers}});
+        return options.db.issue.count({state: "open", "user.login": {$in: orgUsers}});
     }).then(openOrg => {
         counts.openOrg = openOrg;
         var graph = {

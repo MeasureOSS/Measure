@@ -39,7 +39,7 @@ module.exports = function(options, callback) {
             }
         });
         var graph = {
-            title: "Open issues",
+            title: "Open pull requests",
             graphdata: JSON.stringify({
                 type: "doughnut",
                 data: {

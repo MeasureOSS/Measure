@@ -16,6 +16,9 @@ module.exports = function(options, callback) {
                     recentUsers.forEach(r => { 
                         if (oldUsers.indexOf(r) == -1) newUsers.push(r);
                     })
+                    newUsers = Array.from(new Set(newUsers)).sort((a,b) => {
+                        return a.toLowerCase().localeCompare(b.toLowerCase());
+                    });
                     var result = {
                         title: "New contributors",
                         list: newUsers.map(u => { 

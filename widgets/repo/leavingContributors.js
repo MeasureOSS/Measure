@@ -19,6 +19,9 @@ module.exports = function(options, callback) {
                     oldUsers.forEach(r => { 
                         if (recentUsers.indexOf(r) == -1 && leavingUsers.indexOf(r) == -1) leavingUsers.push(r);
                     })
+                    leavingUsers = Array.from(new Set(leavingUsers)).sort((a,b) => {
+                        return a.toLowerCase().localeCompare(b.toLowerCase());
+                    });
                     var result = {
                         title: "Leaving contributors",
                         list: leavingUsers.map(u => { 

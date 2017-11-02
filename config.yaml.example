@@ -3,6 +3,16 @@ github_repositories:
   - stuartlangridge/sorttable
   - stuartlangridge/ColourPicker
 
+# Teams; a grouping of repositories. This is useful in larger
+# environments where one team is responsible for a number of
+# different repositories and would like to see statistics for
+# those repositories together in aggregate.
+# Optional: if you don't use teams, this section can be omitted.
+teams:
+  myteamnamehere:
+    - first/repository-in-this-team
+    - second/repository-in-this-team
+
 # List here the directory where you want the dashboard HTML file
 # to be written. If this directory doesn't exist, it will be created.
 output_directory: dashboard

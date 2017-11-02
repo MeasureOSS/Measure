@@ -283,9 +283,11 @@ Noun Project:
 https://thenounproject.com/term/company-organization/748326
 https://thenounproject.com/term/dashboard/1237026
 https://thenounproject.com/term/statistics/789906
+https://thenounproject.com/latyshevaoksana/collection/vending-machine/?i=880796
 */
 nav + nav li a.nav-repos::before { background-image: url(../img/Dashboards.svg); height: 18px; width: 18px; }
 nav + nav li a.nav-orgs::before { background-image: url(../img/Groups.svg); }
+nav + nav li a.nav-teams::before { background-image: url(../img/Teams.svg); }
 nav + nav li a.nav-overview::before { background-image: url(../img/Overview.svg); }
 nav + nav li a.highlight span {
     border-bottom: 2px solid #4dced0;
@@ -293,6 +295,7 @@ nav + nav li a.highlight span {
 }
 nav + nav li a.highlight.nav-repos::before { background-image: url(../img/Dashboards-highlighted.svg); }
 nav + nav li a.highlight.nav-orgs::before { background-image: url(../img/Groups-highlighted.svg); }
+nav + nav li a.highlight.nav-teams::before { background-image: url(../img/Teams-highlighted.svg); }
 nav + nav li a.highlight.nav-overview::before { background-image: url(../img/Overview-highlighted.svg); }
 
 section.list li {
@@ -522,7 +525,7 @@ ul.adjustable-graph-chooser li input:checked + label {
 
     nav a {
         float: left;
-        width: 18%;
+        width: 13%;
         margin: 0 1.7%;
         padding: 25px 2%;
         margin-bottom: 0;

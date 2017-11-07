@@ -345,6 +345,16 @@ section.dl dt {
 ul.repolist {
     list-style: none;
 }
+table.repolist {
+  margin: 2em;
+}
+table.repolist th, table.repolist td {
+  padding: 0.5em;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+table.repolist th {
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
 
 #flash_messages {
     position: absolute;

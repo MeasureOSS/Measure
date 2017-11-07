@@ -1,9 +1,14 @@
 {{> mainlessheader.tmpl}}
     <section>
-        <ul class="repolist">
-        {{#orgs}}
-        <li><a href="{{link}}">{{title}}</a></li>
-        {{/orgs}}
-        </ul>
+        <table class="repolist sortable">
+            <thead>
+                <tr><th>Organization</th><th>Number of members</th></tr>
+            </thead>
+            <tbody>
+                {{#orgs}}
+                <tr><td><a href="{{link}}">{{title}}</a></td><td>{{count}}</td></tr>
+                {{/orgs}}
+            </tbody>
+        </table>
     </section>
 {{> footer.tmpl}}

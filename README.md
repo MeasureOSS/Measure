@@ -18,7 +18,10 @@ Please be aware that this is beta quality software. That said, we welcome your f
 
 (most of these steps will get automated. But they aren't, yet.)
 
-You will need node 6.x. Sorry. https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions
+Requirements:
+* web server with PHP support
+* node 6.x.
+* git
 
 Check out ghcrawler and -cli:
 

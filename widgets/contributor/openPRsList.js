@@ -10,6 +10,10 @@ module.exports = function(options, callback) {
 
     /* Work out how many PRs are open now */
     options.db.pull_request.find({state: "open"}, {html_url: 1, title: 1}).toArray().then(openNowPR => {
+        if (openNowPR.length == 0) return callback({
+            message: "There are no PRs to count",
+            stack: "skipping"
+        });
         let result = {
             title: "Open PRs",
             list: openNowPR.map(pr => { 

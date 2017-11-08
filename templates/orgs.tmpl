@@ -7,8 +7,9 @@
     <div class="orgadder">
         <label for="orgslist">Org name</label>
         <select name="orgslist"></select>
+        <datalist id="orgsdatalist"></datalist>
         <label for="neworg">Or new</label>
-        <input name="neworg">
+        <input name="neworg" list="orgsdatalist">
         <label for="start">Start date</label>
         <input type="date" name="org-start">
         <label for="end">End date</label>
@@ -24,6 +25,7 @@
     var orgsin = document.querySelector("ul.orgsin");
     var deets = ns.querySelector("details");
     var orglist = ns.querySelector("select");
+    var orgdatalist = ns.querySelector("datalist");
     var addbtn = ns.querySelector("button");
     var neworg = document.getElementsByName("neworg")[0];
     var joined = document.getElementsByName("org-start")[0];
@@ -42,21 +44,29 @@
     deets.addEventListener("toggle", function(e) {
         if (!e.target.open) return;
         orglist.innerHTML = "";
+        orgdatalist.innerHTML = "";
         API("GET", "getAllOrgs", {}, function(err, allorgs) {
             if (err) return flash(err);
             if (!allorgs.success) return flash("Couldn't fetch organizations");
             var frag = document.createDocumentFragment();
+            var frag2 = document.createDocumentFragment();
             var op = document.createElement("option");
             op.value = "-1";
             op.text = "Choose an org";
             frag.appendChild(op);
-            allorgs.rows.forEach(function(o) {
+            allorgs.rows.sort(function(a, b) {
+                return a.name.localeCompare(b.name);
+            }).forEach(function(o) {
                 var op = document.createElement("option");
                 op.value = o.id;
                 op.text = o.name;
                 frag.appendChild(op);
+                var op2 = document.createElement("option");
+                op2.value = o.name;
+                frag2.appendChild(op2);
             });
             orglist.appendChild(frag);
+            orgdatalist.appendChild(frag2);
             enableDisableButton()
         });
     }, false);

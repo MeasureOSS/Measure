@@ -63,6 +63,36 @@ $queries = array(
         "params" => array("login"),
         "return" => "rows",
         "verb" => "GET"
+    ),
+    "orgChanges" => array(
+        "sql" => "select id, org, change, destination from orgChanges",
+        "params" => array(),
+        "return" => "rows",
+        "verb" => "GET"
+    ),
+    "deleteOrg" => array(
+        "sql" => "insert into orgChanges (org, change) values (:id, 'delete')",
+        "params" => array("id"),
+        "return" => "none",
+        "verb" => "POST"
+    ),
+    "restoreOrg" => array(
+        "sql" => "delete from orgChanges where org=:id and change='delete'",
+        "params" => array("id"),
+        "return" => "none",
+        "verb" => "POST"
+    ),
+    "mergeOrgs" => array(
+        "sql" => "insert into orgChanges (org, change, destination) values (:fromId, 'merge', :intoId)",
+        "params" => array("fromId", "intoId"),
+        "return" => "none",
+        "verb" => "POST"
+    ),
+    "unmergeOrg" => array(
+        "sql" => "delete from orgChanges where org=:id and change='merge'",
+        "params" => array("id"),
+        "return" => "none",
+        "verb" => "POST"
     )
 );
 
@@ -104,6 +134,7 @@ if(!function_exists('hash_equals')) {
 }
 
 function giveToken() {
+    global $secret;
     $r = bin2hex(openssl_random_pseudo_bytes(16));
     $t = time();
     $c = crypt("$r:$t:$secret");
@@ -113,6 +144,7 @@ function giveToken() {
 }
 
 function verifyToken($token) {
+    global $secret;
     $parts = explode(":", $token);
     if (count($parts) != 3) { fail(400, "Malformatted token"); }
     $now = time();

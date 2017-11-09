@@ -1,0 +1,62 @@
+{{> mainlessheader.tmpl}}
+    <section>
+        <h1>Organizations editor</h1>
+        <table class="repolist orgtable">
+            <thead>
+                <tr><th>Organization</th><th>Members</th><th>Merge into</th><th>Delete</th></tr>
+            </thead>
+            <tbody>
+                {{#orgs}}
+                <tr data-org-title="{{title}}" data-org-id="{{id}}"><td>{{title}}</td>
+                    <td>
+                        {{people}}
+                    </td>
+                    <td>
+                        <select></select>
+                        <button class="merge">Merge</button>
+                        <button class="unmerge">Unmerge</button>
+                    </td>
+                    <td>
+                        <button class="remove">×</button>
+                        <button class="restore">Restore</button>
+                    </td>
+                </tr>
+                {{/orgs}}
+            </tbody>
+        </table>
+        <p><a href="organizations.html">[Show the organizations list]</a></p>
+    </section>
+    <script src="assets/js/organizations-edit.js"></script>
+    <style>
+        table.orgtable tr.removed {
+            background-color: rgba(255,0,0,0.1);
+            color: rgba(255,255,255,0.1);
+        }
+        table.orgtable tr.merged {
+            background-color: rgba(0,0,255,0.1);
+            color: rgba(255,255,255,0.1);
+            position: relative;
+        }
+        table.orgtable tr.removed select, table.orgtable tr.removed .merge , table.orgtable tr.removed .remove, table.orgtable tr.merged select, table.orgtable tr.merged .merge , table.orgtable tr.merged .remove {
+            display: none;
+        }
+        table.orgtable tr button.restore, table.orgtable tr button.unmerge { display: none; }
+        table.orgtable tr.removed button.restore, table.orgtable tr.merged button.unmerge {
+            display: block;
+            background: transparent;
+            color: rgba(255,255,255,0.4);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        table.orgtable tr.merged td:nth-child(4) {
+            display: none;
+        }
+        table.orgtable tr.merged::after {
+            display: table-cell;
+            padding: 0.5em;
+            border: 1px solid rgba(255,255,255, 0.1);
+            border-width: 1px 0;
+            content: attr(data-merged-into);
+            background: transparent;
+        }
+    </style>
+{{> footer.tmpl}}

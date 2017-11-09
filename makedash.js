@@ -53,12 +53,14 @@ function getAllOrgUsers(options) {
             db.all(sql, [], (err, results) => {
                 db.close();
                 if (err) return reject(err);
-                var org2People = {};
+                var org2People = {}, orgDetails = {};
                 results.forEach(function(r) {
                     if (!org2People[r.name.toLowerCase()]) org2People[r.name.toLowerCase()] = [];
                     org2People[r.name.toLowerCase()].push({login: r.login, joined: r.joined, left: r.left});
+                    orgDetails[r.name.toLowerCase()] = r.orgid;
                 })
                 options.org2People = org2People;
+                options.orgDetails = orgDetails;
 
                 // and override config to have orgnames in lowercase as well, so that when
                 // widgets use them to look up entries in org2People, it works
@@ -110,7 +112,8 @@ function api(options) {
 const tableDefinitions = [
     "notes (id INTEGER PRIMARY KEY, login TEXT, note TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)",
     "orgs (id INTEGER PRIMARY KEY, name TEXT)",
-    "people2org (id INTEGER PRIMARY KEY, org INTEGER, login TEXT, joined DATETIME DEFAULT CURRENT_TIMESTAMP, left DATETIME)"
+    "people2org (id INTEGER PRIMARY KEY, org INTEGER, login TEXT, joined DATETIME DEFAULT CURRENT_TIMESTAMP, left DATETIME)",
+    "orgChanges (id INTEGER PRIMARY KEY, org INTEGER, change TEXT, destination INTEGER)"
 ];
 function apidb(options) {
     return new Promise((resolve, reject) => {
@@ -126,6 +129,44 @@ function apidb(options) {
                 db.close();
                 return resolve(options);
             })
+        });
+    });
+}
+
+/* Look for changes marked in the database -- orgs deleted or merged -- and actually execute them */
+function apidbActionChanges(options) {
+    return new Promise((resolve, reject) => {
+        var sqlite3 = require('sqlite3').verbose();
+        var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
+            if (err) return reject(NICE_ERRORS.COULD_NOT_OPEN_DB(err, options.sqliteDatabase));
+            db.all("select id, org, change, destination from orgChanges", [], (err, results) => {
+                if (err) {
+                    return reject(NICE_ERRORS.COULD_NOT_READ_ORG_CHANGES(err))
+                }
+                async.eachSeries(results, (row, done) => {
+                    if (row.change == "delete") {
+                        // just blow away that org, and remove everyone from it
+                        db.run("delete from orgs where id = ?", [row.org], (err) => {
+                            if (err) return done(err);
+                            return db.run("delete from people2org where org = ?", [row.org], done);
+                        })
+                    } else if (row.change == "merge") {
+                        // move everyone into the destination, and then remove the org
+                        db.run("update people2org set org = ? where org = ?", [row.destination, row.org], (err) => {
+                            if (err) return done(err);
+                            return db.run("delete from orgs where id = ?", [row.org], done);
+                        })
+                    }
+                }, (err) => {
+                    if (err) return reject(err);
+                    // remove all orgChanges rows, because they've been processed
+                    db.run("delete from orgChanges", [], (err) => {
+                        if (err) return reject(err);
+                        db.close();
+                        return resolve(options);
+                    });
+                })
+            });
         });
     });
 }
@@ -165,6 +206,7 @@ loads.loadTemplates()
     .then(pages.previousGeneratedAt)
     .then(api)
     .then(apidb)
+    .then(apidbActionChanges)
     .then(getAllOrgUsers)
     .then(getMyOrgUsers)
     .then(dashboards.dashboardForEachTeam)

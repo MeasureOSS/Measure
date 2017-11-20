@@ -16,11 +16,18 @@ module.exports = function(options, callback) {
            each comment it has is five points
          */
         let scores = openNowPR.map(pr => {
-            let days = moment().diff(moment(pr.created_at), "days");
+            let cre = moment(pr.created_at);
+            let days = moment().diff(cre, "days");
             let score = pr.comments * 5 + days;
-            return {pr: pr, score: score}
+            return {pr: pr, score: score, created_moment: cre}
         })
         scores.sort((b,a) => a.score - b.score);
+
+        // remove PRs that are too new
+        if (options.config.hoursToRespond) {
+            let htr = moment().add(-options.config.hoursToRespond, "hours");
+            scores = scores.filter((s) => { return s.created_moment < htr; })
+        }
         let result = {
             title: "PRs that need attention",
             list: scores.slice(0,5).map(pr => { 

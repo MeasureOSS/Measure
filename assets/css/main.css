@@ -522,6 +522,33 @@ ul.adjustable-graph-chooser li input:checked + label {
     border-bottom: 2px solid #4dced0;
 }
 
+section.graph a.graph-expand, div.expanded-graph a.graph-collapse {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  height: 30px;
+  width: 30px;
+  text-indent: -1000em;
+  background: url(../img/expand.svg);
+  background-size: contain;
+}
+div.expanded-graph a.graph-collapse {
+  background-image: url(../img/collapse.svg);
+}
+
+div.expanded-graph {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  width: 90vw;
+  height: 80vh;
+  outline: 2000px solid rgba(0,0,0,0.6);
+  z-index: 12;
+  background: black;
+  padding: 2em;
+  box-sizing: border-box;
+}
 
 /* ==========================================================================
    Media Queries

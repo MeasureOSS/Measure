@@ -79,7 +79,6 @@ Chart.plugins.register({
                 li.appendChild(lbl);
                 ul.appendChild(li);
             })
-            console.log("haha before");
             c.canvas.parentNode.insertBefore(ul, c.canvas);
             if (!defaultKey) {
                 defaultKey = Object.keys(c.config.data.adjustable)[0];

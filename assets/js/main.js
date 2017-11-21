@@ -97,3 +97,21 @@ function setInclude(val) {
         window.localStorage.setItem("jp-redirect", val);
     }
 }
+
+function expandGraph(node, graphdata) {
+    var d = document.createElement("div");
+    d.className = "expanded-graph";
+    d.appendChild(node.querySelector("h1").cloneNode(true));
+    var a = document.createElement("a");
+    a.href = "#";
+    a.className = "graph-collapse";
+    a.addEventListener("click", function(e) {
+        e.preventDefault();
+        d.parentNode.removeChild(d);
+    }, false);
+    d.appendChild(a);
+    var cv = document.createElement("canvas");
+    d.appendChild(cv);
+    document.body.appendChild(d);
+    new Chart(cv, graphdata);
+}

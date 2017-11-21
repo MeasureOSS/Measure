@@ -1,9 +1,15 @@
 <section class="graph">
 <h1>{{title}}</h1>
+<a class="graph-expand" href="#" id="expand-collapse-{{unique_id}}">expand</a>
 <div class="chart-container" style="position: relative; width: 100%"><canvas width="200" height="120" id="{{unique_id}}"></canvas></div>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    new Chart(document.getElementById("{{unique_id}}"), {{{graphdata}}});
+    var graphdata = {{{graphdata}}};
+    new Chart(document.getElementById("{{unique_id}}"), graphdata);
+    document.getElementById("expand-collapse-{{unique_id}}").addEventListener("click", function(e) {
+        e.preventDefault();
+        expandGraph(e.target.parentNode, graphdata);
+    }, false);
 }, false);
 </script>
 </section>

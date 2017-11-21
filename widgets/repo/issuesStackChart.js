@@ -94,6 +94,7 @@ module.exports = function(options, callback) {
                                 position: "top",
                                 labels: {
                                     boxWidth: 2,
+                                    fontColor: "white",
                                     fontSize: 8
                                 }
                             },

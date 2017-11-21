@@ -64,7 +64,8 @@ module.exports = function(options, callback) {
                                 data: monthlyValues.map(n => { return n[1]; }),
                                 borderColor: options.COLORS[0],
                                 borderWidth: 2,
-                                pointStyle: "rect"
+                                pointStyle: "rect",
+                                label: "Open issues"
                             }]
                         },
                         Weekly: {
@@ -74,7 +75,8 @@ module.exports = function(options, callback) {
                                 data: weeklyValues.map(n => { return n[1]; }),
                                 borderColor: options.COLORS[0],
                                 borderWidth: 2,
-                                pointStyle: "rect"
+                                pointStyle: "rect",
+                                label: "Open issues"
                             }]
                         },
                     }
@@ -85,7 +87,8 @@ module.exports = function(options, callback) {
                         position: "top",
                         labels: {
                             boxWidth: 2,
-                            fontSize: 8
+                            fontSize: 8,
+                            fontColor: "white"
                         }
                     },
                     scales: {

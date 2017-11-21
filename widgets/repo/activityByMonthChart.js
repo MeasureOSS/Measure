@@ -22,8 +22,8 @@ module.exports = function(options, callback) {
                 },
                 options: {
                     scales: {
-                        xAxes: [{display: false}],
-                        yAxes: [{display: false, beginAtZero: true}]
+                        xAxes: [{display: true, gridLines: {display: false}}],
+                        yAxes: [{display: true, gridLines: {color: "#666666"}, ticks: {fontColor: "white"}}]
                     }
                 }
             })

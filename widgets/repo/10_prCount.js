@@ -1,3 +1,4 @@
+const widgetUtils = require("../widgetUtils");
 const moment = require("moment");
 
 module.exports = function(options, callback) {
@@ -22,10 +23,18 @@ module.exports = function(options, callback) {
         counts.closedSinceCount = closedSinceCount;
         return options.db.issue.find({}, {repository_url:1}).limit(1).toArray();
     }).then(firstIssue => {;
+        counts.firstIssue = firstIssue;
+        return options.db.pull_request.find({state: "open"}, {created_at:1}).toArray();
+    }).then(openPRs => {
         var link;
-        if (firstIssue.length > 0) {
-            link = firstIssue[0].repository_url.replace('api.github.com/repos', 'github.com') + '/pulls';
+        if (counts.firstIssue.length > 0) {
+            link = counts.firstIssue[0].repository_url.replace('api.github.com/repos', 'github.com') + '/pulls';
         }
+        var now = moment();
+        var ages = openPRs.map(i => {
+            return now.diff(moment(i.created_at), "days");
+        })
+
         let openAMonthAgoCount = counts.openThenCount + counts.closedSinceCount;
         let diff = ((openAMonthAgoCount < counts.openNowCount) ? "+" : "") + 
             (counts.openNowCount - openAMonthAgoCount);
@@ -34,9 +43,12 @@ module.exports = function(options, callback) {
             bignumber: counts.openNowCount,
             unit: "Pull Requests",
             changename: moment().format("MMMM"),
-            changeamount: diff
+            changeamount: diff,
+            mean: Math.round(widgetUtils.averageArray(ages)) + " days open",
+            median: Math.round(widgetUtils.medianArray(ages)) + " days open",
+            pc95: Math.round(widgetUtils.pc95Array(ages)) + " days open"
         };
         if (options.limitedTo) result.link = link; // so we don't get a link on the root page
-        options.templates.bignumber(result, callback);
+        options.templates.bignumberstats(result, callback);
     }).catch(e => { callback(e); });
 }

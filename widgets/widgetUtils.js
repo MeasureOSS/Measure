@@ -4,7 +4,11 @@ var averageArray = arr => arr.reduce( ( p, c ) => p + c, 0 ) / arr.length;
 var medianArray = arr => arr[Math.round(arr.length/2)];
 // this isn't strictly 95th percentile, but it's likely to be about right
 // assuming a reasonably even distribution of possibilities
-var pc95Array = arr => arr[Math.round(0.95*arr.length)];
+var pc95Array = arr => arr[Math.round(0.95*(arr.length-1))];
+
+module.exports.averageArray = averageArray;
+module.exports.medianArray = medianArray;
+module.exports.pc95Array = pc95Array;
 
 function groupby(result, keyFormat, labelFormat, durationStep) {
     if (result.length == 0) { return {labels:[], data: []}; };

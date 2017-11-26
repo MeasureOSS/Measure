@@ -333,6 +333,20 @@ section.bignumber p {
     margin: 0.5em;
     color: #999999;
 }
+section.bignumber dl {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 0px 5px;
+    font-size: 80%;
+}
+section.bignumber dl dt, section.bignumber dl dd {
+    margin: 0;
+    padding: 0;
+}
+section.bignumber dl dt { text-align: right; }
+section.bignumber dl dd { text-align: left; }
 
 section.dl dd {
     color: white;

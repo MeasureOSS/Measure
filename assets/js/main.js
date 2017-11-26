@@ -99,19 +99,24 @@ function setInclude(val) {
 }
 
 function expandGraph(node, graphdata) {
+    function remove(e) {
+        e.preventDefault();
+        dc.parentNode.removeChild(dc);
+    }
+    var dc = document.createElement("div");
     var d = document.createElement("div");
+    dc.className = "expanded-graph-container";
     d.className = "expanded-graph";
     d.appendChild(node.querySelector("h1").cloneNode(true));
     var a = document.createElement("a");
     a.href = "#";
     a.className = "graph-collapse";
-    a.addEventListener("click", function(e) {
-        e.preventDefault();
-        d.parentNode.removeChild(d);
-    }, false);
+    a.addEventListener("click", remove, false);
+    dc.addEventListener("click", remove, false);
     d.appendChild(a);
     var cv = document.createElement("canvas");
     d.appendChild(cv);
-    document.body.appendChild(d);
+    dc.appendChild(d);
+    document.body.appendChild(dc);
     new Chart(cv, graphdata);
 }

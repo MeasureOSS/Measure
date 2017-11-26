@@ -432,6 +432,16 @@ input[type=range].adjustable-graph-slider::-webkit-slider-runnable-track {
   border: 0.2px solid #010101;
   border-width: 0;
 }
+input[type=range].adjustable-graph-slider::-moz-range-track {
+  width: 100%;
+  height: 2px;
+  cursor: pointer;
+  animate: 0.2s;
+  background: white;
+  border-radius: 1.3px;
+  border: 0.2px solid #010101;
+  border-width: 0;
+}
 input[type=range].adjustable-graph-slider::-webkit-slider-thumb {
   border-width: 0;
   height: 26px;
@@ -443,64 +453,18 @@ input[type=range].adjustable-graph-slider::-webkit-slider-thumb {
   margin-top: -12px;
   box-shadow: 4px 4px 9px rgba(0,0,0,0.5);
 }
-input[type=range].adjustable-graph-slider:focus::-webkit-slider-runnable-track {
-  background: white;
-}
-input[type=range].adjustable-graph-slider::-moz-range-track {
-  width: 100%;
-  height: 2;
-  cursor: pointer;
-  animate: 0.2s;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-  background: white;
-  border-radius: 1.3px;
-  border: -width: 0;
-}
 input[type=range].adjustable-graph-slider::-moz-range-thumb {
-  border: 1px solid #000000;
   border-width: 0;
   height: 26px;
-  width: 16px;
-  border-radius: 3px;
-  background: #ffffff;
+  width: 26px;
+  border-radius: 100px;
+  background: #606469;
   cursor: pointer;
+  margin-top: -12px;
+  box-shadow: 4px 4px 9px rgba(0,0,0,0.5);
 }
-input[type=range].adjustable-graph-slider::-ms-track {
-  width: 100%;
-  height: 8.4px;
-  cursor: pointer;
-  animate: 0.2s;
-  background: transparent;
-  border-color: transparent;
-  border-width: 16px 0;
-  color: transparent;
-}
-input[type=range].adjustable-graph-slider::-ms-fill-lower {
-  background: #2a6495;
-  border: 0.2px solid #010101;
-  border-radius: 2.6px;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-}
-input[type=range].adjustable-graph-slider::-ms-fill-upper {
-  background: #3071a9;
-  border: 0.2px solid #010101;
-  border-radius: 2.6px;
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-}
-input[type=range].adjustable-graph-slider::-ms-thumb {
-  box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
-  border: 1px solid #000000;
-  height: 36px;
-  width: 16px;
-  border-radius: 3px;
-  background: #ffffff;
-  cursor: pointer;
-}
-input[type=range].adjustable-graph-slider:focus::-ms-fill-lower {
-  background: #3071a9;
-}
-input[type=range].adjustable-graph-slider:focus::-ms-fill-upper {
-  background: #367ebd;
+input[type=range].adjustable-graph-slider:focus::-webkit-slider-runnable-track {
+  background: white;
 }
 
 ul.adjustable-graph-chooser {

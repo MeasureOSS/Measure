@@ -120,3 +120,6 @@ function expandGraph(node, graphdata) {
     document.body.appendChild(dc);
     new Chart(cv, graphdata);
 }
+
+Chart.defaults.global.responsive = true;
+Chart.defaults.global.maintainAspectRatio = true;

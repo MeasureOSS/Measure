@@ -1,6 +1,7 @@
 module.exports = function(options, callback) {
     /* get issue counts by month */
     options.db.issue.aggregate([
+        { $match: { pull_request: null }},
         { $group: { _id: { $substr: ['$created_at', 0, 7] }, issue_count: { $sum: 1 } } },
         { $sort: { _id: 1 } }
     ], (err, result) => {

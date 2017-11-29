@@ -101,6 +101,7 @@ function setInclude(val) {
 function expandGraph(node, graphdata) {
     function remove(e) {
         e.preventDefault();
+        e.stopPropagation();
         dc.parentNode.removeChild(dc);
     }
     var dc = document.createElement("div");
@@ -112,12 +113,15 @@ function expandGraph(node, graphdata) {
     a.href = "#";
     a.className = "graph-collapse";
     a.addEventListener("click", remove, false);
-    dc.addEventListener("click", remove, false);
+    dc.addEventListener("click", function(e) {
+        if (e.target === dc) { remove(e); }
+    }, false);
     d.appendChild(a);
     var cv = document.createElement("canvas");
     d.appendChild(cv);
     dc.appendChild(d);
     document.body.appendChild(dc);
+    graphdata.options.maintainAspectRatio = false;
     new Chart(cv, graphdata);
 }
 

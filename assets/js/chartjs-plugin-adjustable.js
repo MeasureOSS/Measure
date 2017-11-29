@@ -79,7 +79,11 @@ Chart.plugins.register({
                 li.appendChild(lbl);
                 ul.appendChild(li);
             })
-            c.canvas.parentNode.insertBefore(ul, c.canvas);
+            var chartContainerWrapper = document.createElement("div");
+            chartContainerWrapper.className = "chart-container-wrapper";
+            c.canvas.parentNode.insertBefore(chartContainerWrapper, c.canvas);
+            chartContainerWrapper.appendChild(c.canvas);
+            chartContainerWrapper.parentNode.insertBefore(ul, chartContainerWrapper);
             if (!defaultKey) {
                 defaultKey = Object.keys(c.config.data.adjustable)[0];
                 keysToRadio[defaultKey].checked = true;

@@ -1,7 +1,9 @@
 <?php
 
+require_once("secret.php");
+require("authlist.php");
+
 $dsn = '';
-$secret = 'Eihiqu4a Ma7Ek0ae Hozai5ci eish4Shi phiiw6Un ohD8wi3k';
 
 $queries = array(
     "addNote" => array(
@@ -133,6 +135,26 @@ if(!function_exists('hash_equals')) {
   }
 }
 
+function checkAuthRequired() {
+    global $auth_list;
+    $auth_details = array("required" => FALSE, "valid" => null, "present" => FALSE);
+    if (count($auth_list) > 0) {
+        $auth_details["required"] = TRUE;
+        $auth_details["accepted"] = array_keys($auth_list);
+    }
+    if (isset($_GET["authtoken"])) {
+        $auth_details["present"] = TRUE;
+        $auth_details["valid"] = generic_verify($_GET["authtoken"]);
+        if ($auth_details["valid"]) {
+            $token_details = generic_unpack_token($_GET["authtoken"]);
+            $auth_details["username"] = $token_details["username"];
+            $auth_details["provider"] = $token_details["provider"];
+        }
+    }
+    echo json_encode($auth_details);
+    die();
+}
+
 function giveToken() {
     global $secret;
     $r = bin2hex(openssl_random_pseudo_bytes(16));
@@ -157,10 +179,11 @@ function verifyToken($token) {
 }
 
 function check_query_inputs() {
-    global $queries;
+    global $queries, $auth_list;
     if (!isset($_GET["query"])) { fail(400, "No query specified"); }
     $query = $_GET["query"];
     if ($query == "token") { giveToken(); }
+    if ($query == "auth") { checkAuthRequired(); }
     if (!array_key_exists($query, $queries)) { fail(400, "Bad query specified"); }
     $queryd = $queries[$query];
     $sql = $queryd["sql"];
@@ -171,6 +194,19 @@ function check_query_inputs() {
     }
     if (!isset($_GET["token"])) { fail(400, "No token specified"); }
     verifyToken($_GET["token"]);
+
+    if ($queryd["verb"] == "POST") {
+        if (count($auth_list) > 0) {
+            if (!isset($_GET["authtoken"])) {
+                fail(400, "No auth token specified");
+            } else {
+                if (!generic_verify($_GET["authtoken"])) {
+                    fail(400, "Invalid auth token specified");
+                }
+            }
+        }
+    }
+
     $params = array();
     foreach ($_GET as $key => $value) {
         if ($key == "query") { continue; }

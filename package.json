@@ -5,7 +5,7 @@
   "main": "makedash.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon -e tmpl,js,css,yaml -i dashboard -i database makedash.js"
+    "dev": "nodemon -e tmpl,js,css,yaml,php -i dashboard -i database makedash.js"
   },
   "author": "",
   "license": "ISC",

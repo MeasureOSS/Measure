@@ -17,6 +17,7 @@ const dashboards = require('./lib/dashboards');
 const pages = require('./lib/pages');
 const loads = require('./lib/loads');
 const checking = require('./lib/checking');
+const runtime_auth = require('./lib/runtime_auth');
 const NICE_ERRORS = require('./lib/nice_errors');
 
 if (!Object.entries) { entries.shim(); }
@@ -96,12 +97,27 @@ function getMyOrgUsers(options) {
 
 function api(options) {
     return new Promise((resolve, reject) => {
-        fs.readFile("api.php", {encoding: "utf-8"}, (err, data) => {
+        fs.readFile("php/api.php", {encoding: "utf-8"}, (err, data) => {
             options.sqliteDatabase = options.userConfig.database_directory + "/admin.db";
             var rel = path.relative(options.userConfig.output_directory,
                 options.sqliteDatabase);
             data = data.replace("$dsn = '';", "$dsn = 'sqlite:' . dirname(__FILE__) . '/" + rel + "';")
             const outputFile = path.join(options.userConfig.output_directory, "api.php");
+            fs.writeFile(outputFile, data, {encoding: "utf8"}, err => {
+                if (err) {
+                    return reject(NICE_ERRORS.COULD_NOT_WRITE_API(err, outputFile));
+                }
+                return resolve(options);
+            });
+        })
+    });
+}
+
+function apiSecret(options) {
+    return new Promise((resolve, reject) => {
+        fs.readFile("php/secret.php", {encoding: "utf-8"}, (err, data) => {
+            /* FIXME: generate a fresh secret and save it in the database and reuse it */
+            const outputFile = path.join(options.userConfig.output_directory, "secret.php");
             fs.writeFile(outputFile, data, {encoding: "utf8"}, err => {
                 if (err) {
                     return reject(NICE_ERRORS.COULD_NOT_WRITE_API(err, outputFile));
@@ -209,10 +225,13 @@ loads.loadTemplates()
     .then(checking.confirmActivity)
     .then(pages.previousGeneratedAt)
     .then(api)
+    .then(apiSecret)
     .then(apidb)
     .then(apidbActionChanges)
     .then(getAllOrgUsers)
     .then(getMyOrgUsers)
+    .then(runtime_auth.setupRuntimeAuth)
+    .then(runtime_auth.copyAuthPHP)
     .then(dashboards.dashboardForEachTeam)
     .then(dashboards.dashboardForEachRepo)
     .then(dashboards.changedContributors)

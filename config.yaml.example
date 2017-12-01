@@ -37,3 +37,21 @@ my_organizations:
 # make the list-of-issues (and PRs) widget show how many issues were 
 # not responded to in this time.
 hoursToRespond: 96
+
+# Provide an authentication key to require authentication to edit
+# organizations and notes. Supported authentication types are:
+#     github:
+#         This requires a client_id and client_secret, which are obtainable
+#         by registering a Github OAuth2 app as per instructions at
+#         https://developer.github.com/v3/guides/basics-of-authentication/
+#         and an organization. This is not a Measure organization, it's a
+#         Github organization; anyone who signs in with Github and is a
+#         member of that Github organization will have admin rights in the
+#         dashboards and can create and edit Measure organization memberships.
+#         When registering, add the authorization callback URL as
+#         http://your-measure-deployment/github-login.php
+authentication:
+  github:
+    client_id: abababababababababab
+    client_secret: cdcdcdcdcdcdcdcdcdccdcdcdccdcdcdcdcdcdcd
+    organization: MeasureOSS

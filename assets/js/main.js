@@ -40,6 +40,8 @@ var API = (function() {
                 return;
             }
         }
+        var authtoken = window.localStorage.getItem("jp-authtoken");
+        if (method == "POST" && authtoken) { nparams.authtoken = authtoken; }
         xhr(method, nparams, done);
     }
 
@@ -51,6 +53,10 @@ var API = (function() {
 
     return query;
 })();
+
+function storeAuthToken(authtoken) {
+    window.localStorage.setItem("jp-authtoken", authtoken);
+}
 
 var flash = (function() {
     var fm = document.getElementById("flash_messages");
@@ -91,6 +97,32 @@ var flash = (function() {
         if ((a.offsetWidth > pw) && ws == "nowrap" && !a.title) a.title = a.textContent;
     })
 })()
+
+// check if auth is required
+var authRequired = false, authDetails;
+(function() {
+    var authParams = {};
+    var authtoken = window.localStorage.getItem("jp-authtoken");
+    if (authtoken) { authParams.authtoken = authtoken; }
+    API("GET", "auth", authParams, function(err, res) {
+        if (err) { return flash("Couldn't contact server", err); }
+        authDetails = res;
+        if (res.present && !res.valid) {
+            console.log("Provided auth token is invalid; removing it");
+            window.localStorage.removeItem("jp-authtoken");
+        }
+        authRequired = res.required;
+        if (authRequired && !res.valid) {
+            var a = document.createElement("a");
+            a.href = "../login.php";
+            a.className = "login-required-link";
+            a.appendChild(document.createTextNode("Login required"));
+            Array.prototype.slice.call(document.querySelectorAll("section[data-auth-required]")).forEach(function(s) {
+                s.appendChild(a.cloneNode(true));
+            })
+        }
+    })
+})();
 
 function setInclude(val) {
     if (window.localStorage) {

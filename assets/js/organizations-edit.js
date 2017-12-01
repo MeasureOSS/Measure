@@ -3,26 +3,30 @@ window.addEventListener("DOMContentLoaded", function() {
         if (fromId == intoId) {
             return flash("You can't merge an organization with itself.");
         }
-        API("POST", "mergeOrgs", {fromId: fromId, intoId: intoId}, function(err) {
+        API("POST", "mergeOrgs", {fromId: fromId, intoId: intoId}, function(err, data) {
             if (err) return flash("Couldn't merge organizations", err);
+            if (data.success === false) return flash("Couldn't merge organizations", data.msg);
             location.reload();
         })
     }
     function deleteOrg(id) {
-        API("POST", "deleteOrg", {id: id}, function(err) {
+        API("POST", "deleteOrg", {id: id}, function(err, data) {
             if (err) return flash("Couldn't delete organization", err);
+            if (data.success === false) return flash("Couldn't delete organization", data.msg);
             location.reload();
         })
     }
     function restoreOrg(id) {
-        API("POST", "restoreOrg", {id: id}, function(err) {
+        API("POST", "restoreOrg", {id: id}, function(err, data) {
             if (err) return flash("Couldn't restore organization", err);
+            if (data.success === false) return flash("Couldn't restore organization", data.msg);
             location.reload();
         })
     }
     function unmergeOrg(id) {
-        API("POST", "unmergeOrg", {id: id}, function(err) {
+        API("POST", "unmergeOrg", {id: id}, function(err, data) {
             if (err) return flash("Couldn't unmerge organization", err);
+            if (data.success === false) return flash("Couldn't unmerge organizations", data.msg);
             location.reload();
         })
     }

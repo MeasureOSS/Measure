@@ -207,10 +207,12 @@ function check_query_inputs() {
         }
     }
 
+    /* Verify that they only passed vars we expect, and not some random other vars */
     $params = array();
     foreach ($_GET as $key => $value) {
         if ($key == "query") { continue; }
         if ($key == "token") { continue; }
+        if ($key == "authtoken") { continue; }
         if (!in_array($key, $required)) {
             fail(400, "Non-existent variable " . $key);
         }

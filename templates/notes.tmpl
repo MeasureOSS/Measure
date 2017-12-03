@@ -20,7 +20,7 @@
                 a.href = "#";
                 a.onclick = function(e) {
                     e.preventDefault();
-                    API("POST", "removeNote", {id: n.id}, function(err) {
+                    API("POST", "removeNote", {id: n.id}, function(err, res) {
                         if (err) return flash("Couldn't delete note", err);
                         if (!res.success) { return flash("Couldn't save note", res.msg); }
                         updateNotes();

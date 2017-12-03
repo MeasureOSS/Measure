@@ -22,6 +22,7 @@
                     e.preventDefault();
                     API("POST", "removeNote", {id: n.id}, function(err) {
                         if (err) return flash("Couldn't delete note", err);
+                        if (!res.success) { return flash("Couldn't save note", res.msg); }
                         updateNotes();
                     })
                 }
@@ -37,8 +38,9 @@
     ns.querySelector("button").onclick = function() {
         var n = prompt("Add a note?");
         if (n) {
-            API("POST", "addNote", {login: login, note: n}, function(err) {
+            API("POST", "addNote", {login: login, note: n}, function(err, res) {
                 if (err) { return flash("Couldn't save note", err); }
+                if (!res.success) { return flash("Couldn't save note", res.msg); }
                 updateNotes();
             })
         }

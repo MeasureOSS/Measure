@@ -25,7 +25,7 @@ function do_login() {
     $params = array(
         'client_id' => OAUTH2_CLIENT_ID,
         'redirect_uri' => siteURL(),
-        'scope' => 'user',
+        'scope' => 'read:user',
         'state' => $_SESSION['state']
     );
     header('Location: ' . $authorizeURL . '?' . http_build_query($params));

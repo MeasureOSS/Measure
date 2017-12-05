@@ -14,7 +14,7 @@ if (array_key_exists("github", $auth_list)) {
     $buttons[] = '<a class="btn-auth btn-github" href="github-login.php?action=login">Sign in with Github</a>';
 }
 
-$html = "<style>@import 'http://necolas.github.io/css3-social-signin-buttons/auth-buttons.css';</style><p class='is-signed-in'></p>" . join($buttons, "<br>\n");
+$html = "<style>@import '//necolas.github.io/css3-social-signin-buttons/auth-buttons.css';</style><p class='is-signed-in'></p>" . join($buttons, "<br>\n");
 $html .= '<script>window.addEventListener("load", function() { ' .
     '    setTimeout(function() {' .
     '    if (authDetails.provider && authDetails.username) {' .

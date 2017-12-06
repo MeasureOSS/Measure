@@ -115,16 +115,38 @@ function api(options) {
 
 function apiSecret(options) {
     return new Promise((resolve, reject) => {
-        fs.readFile("php/secret.php", {encoding: "utf-8"}, (err, data) => {
-            /* FIXME: generate a fresh secret and save it in the database and reuse it */
-            const outputFile = path.join(options.userConfig.output_directory, "secret.php");
-            fs.writeFile(outputFile, data, {encoding: "utf8"}, err => {
-                if (err) {
-                    return reject(NICE_ERRORS.COULD_NOT_WRITE_API(err, outputFile));
+        function apiSecretWrite(secret) {
+            fs.readFile("php/secret.php", {encoding: "utf-8"}, (err, data) => {
+                data = data.replace(
+                    "$secret = 'Eihiqu4a Ma7Ek0ae Hozai5ci eish4Shi phiiw6Un ohD8wi3k';",
+                    "$secret = '" + secret + "';"
+                );
+                const outputFile = path.join(options.userConfig.output_directory, "secret.php");
+                fs.writeFile(outputFile, data, {encoding: "utf8"}, err => {
+                    if (err) {
+                        return reject(NICE_ERRORS.COULD_NOT_WRITE_API(err, outputFile));
+                    }
+                    return resolve(options);
+                });
+            })
+        }
+
+        var sqlite3 = require('sqlite3').verbose();
+        var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
+            if (err) return reject(NICE_ERRORS.COULD_NOT_OPEN_DB(err, options.sqliteDatabase));
+            db.all("select * from secret", [], (err, rows) => {
+                if (err) { return reject(NICE_ERRORS.COULD_NOT_READ_DB(err)); }
+                if (rows.length > 0) {
+                    return apiSecretWrite(rows[0].secret);
+                } else {
+                    var secret = utils.randomString(50);
+                    db.run("insert into secret (secret) values (?)", [secret], (err) => {
+                        if (err) return reject(NICE_ERRORS.COULD_NOT_WRITE_SECRET(err));
+                        apiSecretWrite(secret);
+                    })
                 }
-                return resolve(options);
-            });
-        })
+            })
+        });
     });
 }
 
@@ -132,7 +154,8 @@ const tableDefinitions = [
     "notes (id INTEGER PRIMARY KEY, login TEXT, note TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)",
     "orgs (id INTEGER PRIMARY KEY, name TEXT)",
     "people2org (id INTEGER PRIMARY KEY, org INTEGER, login TEXT, joined DATETIME DEFAULT CURRENT_TIMESTAMP, left DATETIME)",
-    "orgChanges (id INTEGER PRIMARY KEY, org INTEGER, change TEXT, destination INTEGER)"
+    "orgChanges (id INTEGER PRIMARY KEY, org INTEGER, change TEXT, destination INTEGER)",
+    "secret (secret TEXT)"
 ];
 function apidb(options) {
     return new Promise((resolve, reject) => {
@@ -225,8 +248,8 @@ loads.loadTemplates()
     .then(checking.confirmActivity)
     .then(pages.previousGeneratedAt)
     .then(api)
-    .then(apiSecret)
     .then(apidb)
+    .then(apiSecret)
     .then(apidbActionChanges)
     .then(getAllOrgUsers)
     .then(getMyOrgUsers)

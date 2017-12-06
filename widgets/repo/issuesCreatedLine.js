@@ -11,15 +11,20 @@ module.exports = function(options, callback) {
             graphdata: JSON.stringify({
                 type: "line",
                 data: {
-                    labels: result.map(n => n._id),
-                    datasets: [
-                        {
-                            data: result.map(n => n.issue_count),
-                            borderColor: options.COLORS[0],
-                            borderWidth: 2,
-                            pointStyle: "rect"
+                    adjustable: {
+                        Monthly: {
+                            labels: result.map(n => n._id),
+                            minimumLength: 5,
+                            datasets: [
+                                {
+                                    data: result.map(n => n.issue_count),
+                                    borderColor: options.COLORS[0],
+                                    borderWidth: 2,
+                                    pointStyle: "rect"
+                                }
+                            ]
                         }
-                    ]
+                    }
                 },
                 options: {
                     scales: {

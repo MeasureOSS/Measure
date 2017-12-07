@@ -80,9 +80,15 @@
             var frag = document.createDocumentFragment();
             orgs.rows.forEach(function(o) {
                 var li = document.createElement("li");
+
+                var alink = document.createElement("a");
+                alink.href = "../org/" + o.name.toLowerCase() + ".html";
+                alink.appendChild(document.createTextNode(" ⬀"));
+
                 var adel = document.createElement("a");
                 adel.href = "#";
                 adel.appendChild(document.createTextNode("×"));
+                adel.className = "remove";
                 adel.onclick = function(e) {
                     e.preventDefault();
                     API("POST", "removeFromOrg", {login: login, org: o.id}, function(err) {
@@ -112,6 +118,7 @@
                 }
                 em.appendChild(document.createTextNode(")"));
                 li.appendChild(strong);
+                li.appendChild(alink);
                 li.appendChild(adel);
                 li.appendChild(em);
                 frag.appendChild(li);
@@ -173,6 +180,9 @@ section.orgs ul.orgsin {
 section.orgs ul.orgsin li {
     padding: 0;
     list-style: none;
+}
+section.orgs ul.orgsin a.remove {
+    float: right;
 }
 section.orgs ul.orgsin em {
     display: block;

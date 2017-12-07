@@ -224,7 +224,12 @@ h1.title {
     padding: 0;
     text-align: center;
 }
-
+header a.search {
+    float: right;
+    margin-right: 50px;
+    font-size: 1.5em;
+    line-height: 50px;
+}
 nav + nav {
     background-color: #3b4045;
     overflow: auto;

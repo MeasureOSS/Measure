@@ -264,6 +264,7 @@ loads.loadTemplates()
     .then(pages.frontPage)
     .then(pages.indexPages)
     .then(pages.generatedAt)
+    .then(pages.searchPage)
     .then(leave)
     .catch(e => {
         if (db) db.close();

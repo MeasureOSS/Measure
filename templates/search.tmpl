@@ -1,0 +1,64 @@
+{{> mainlessheader.tmpl}}
+            <div class="main wrapper clearfix report">
+                <h1>Search</h1>
+                <form class="searchform">
+                    Search: <input type="search">
+                    <input type="submit">
+                </form>
+                <ul class="searchresults">
+                </ul>
+<style>
+.searchform input { color: black; }
+ul.searchresults {
+    margin: 0;
+    padding: 0;
+}
+ul.searchresults li:nth-child(1) {
+    list-style: none;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.0.4/fuse.min.js"></script>
+<script>
+var searchdata = {{{searchdata}}};
+var searchbox = document.querySelector(".searchform input[type=search]");
+var sr = document.querySelector("ul.searchresults");
+var fuse = new Fuse(searchdata, {
+    keys: ["name"],
+    threshold: 0.3
+});
+var waitTimer;
+function doSearch() {
+    // bump the timer
+    clearTimeout(waitTimer);
+    waitTimer = setTimeout(function() {
+        sr.innerHTML = "";
+        var results = fuse.search(searchbox.value);
+        var clipped = false;
+        if (results.length > 100) {
+            results = results.slice(0,100);
+            clipped = true;
+        }
+        var li = document.createElement("li");
+        li.appendChild(document.createTextNode((clipped ? "More than " : "") + results.length + 
+            " result" + (results.length == 1 ? "" : "s") + " found"));
+        sr.appendChild(li);
+        results.forEach(function(r) {
+            var li = document.createElement("li");
+            var a = document.createElement("a");
+            a.href = r.link;
+            a.appendChild(document.createTextNode(r.type + ": " + r.name));
+            li.appendChild(a);
+            sr.appendChild(li);
+        })
+    }, 100);
+}
+document.querySelector(".searchform").onsubmit = function(e) {
+    e.preventDefault();
+    doSearch();
+}
+searchbox.oninput = doSearch;
+</script>
+{{> footer.tmpl}}

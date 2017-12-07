@@ -115,7 +115,7 @@ module.exports = function(options, callback) {
                 ].join("</td>\n<td>") + "</td></tr>");
             }
 
-            var html = "<table><thead><tr><th>Repository</th>\n" +
+            var html = "<table class='sortable'><thead><tr><th>Repository</th>\n" +
                 "<th>Issue close</small></th>\n" +
                 "<th>Issue close</th>\n" +
                 "<th>Issue first response</th>\n" +

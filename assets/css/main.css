@@ -156,18 +156,52 @@ section button, section input, section select {
 
 .main.report table th {
   color: white;
+  font-weight: 500;
 }
 .main.report table th small {
   font-weight: normal;
-  color: #3b4045;
+  color: #677079;
   white-space: nowrap;
 }
 .main.report table tr {
   border-bottom: 1px solid #3b4045;
 }
-.main.report table td {
-  padding: 2px;
+.main.report table thead tr:nth-child(1) {
+  border-bottom-width: 0;
 }
+
+.main.report table td, .main.report table th {
+  padding: 2px;
+  text-align: center;
+  border-right: 1px solid #3b4045;
+}
+.main.report table th {
+  padding: 0 2px;
+}
+.main.report table th {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.main.report table th:nth-child(1), .main.report table td:nth-child(1) {
+  text-align: left;
+  padding-left: 6px;
+  padding-right: 3em;
+  border-left: 1px solid #677079;
+  border-right: 1px solid #677079;
+}
+.main.report table th:nth-last-child(1), .main.report table td:nth-last-child(1) {
+  border-right: 1px solid #677079;
+}
+.main.report table thead tr:nth-child(1) {
+  border-top: 1px solid #677079;
+}
+.main.report table tbody tr:nth-last-child(1) {
+  border-bottom: 1px solid #677079;
+}
+.main.report table thead tr:nth-last-child(1) {
+  border-bottom: 1px solid #ff7bac;
+}
+
 .main.report table tr:nth-child(2n) td {
   background: rgba(255,255,255,0.05);
 }

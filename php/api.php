@@ -95,6 +95,18 @@ $queries = array(
         "params" => array("id"),
         "return" => "none",
         "verb" => "POST"
+    ),
+    "getBasicInfoOverrides" => array(
+        "sql" => "select login, name, company, blog, location, email, hireable from bio where login = :login",
+        "params" => array("login"),
+        "return" => "rows",
+        "verb" => "GET"
+    ),
+    "setBasicInfoOverrides" => array(
+        "sql" => "insert or replace into bio (login, name, company, blog, location, email, hireable) values (:login, :name, :company, :blog, :location, :email, :hireable)",
+        "params" => array("login", "name", "company", "blog", "location", "email", "hireable"),
+        "return" => "none",
+        "verb" => "POST"
     )
 );
 

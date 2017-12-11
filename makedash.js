@@ -155,7 +155,8 @@ const tableDefinitions = [
     "orgs (id INTEGER PRIMARY KEY, name TEXT)",
     "people2org (id INTEGER PRIMARY KEY, org INTEGER, login TEXT, joined DATETIME DEFAULT CURRENT_TIMESTAMP, left DATETIME)",
     "orgChanges (id INTEGER PRIMARY KEY, org INTEGER, change TEXT, destination INTEGER)",
-    "secret (secret TEXT)"
+    "secret (secret TEXT)",
+    "bio (login TEXT PRIMARY KEY, name TEXT, company TEXT, blog TEXT, location TEXT, email TEXT, hireable TEXT)"
 ];
 function apidb(options) {
     return new Promise((resolve, reject) => {

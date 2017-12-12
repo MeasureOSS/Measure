@@ -327,6 +327,17 @@ header h2 {
 h1.title, header h2 {
     padding: 1em 0;
 }
+h1.title a {
+    position: absolute;
+    width: 100%;
+    box-sizing: border-box;
+    height: calc(100% + 1em);
+    top: 0;
+    left: 0;
+    background: url(../img/measure-logo.svg) center center no-repeat;
+    background-size: 80%;
+    text-indent: -100em;
+}
 
 nav + nav li a::before {
     display: inline-block;

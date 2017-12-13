@@ -87,3 +87,37 @@ module.exports.dateDiffsByTimePeriods = function(collection, query, groupByField
         return callback(null, groups);
     }).catch(e => { console.log("err", e); return callback(e); })
 }
+
+module.exports.timeIncrementGroupings = [
+    ["weekly", "YYYY-ww", "weeks"],
+    ["monthly", "YYYY-MM", "months"]
+];
+
+module.exports.datesBetween = function(startString, endString, format, increment) {
+    /* How do you work out which "time periods" are between two dates? Say a bug is 
+    opened on 19th August and it is currently December 12th. Which months should get credit 
+    for that bug being open in the graph?
+    Clearly: August, September, October, November, December.
+    But if you just start on 19th August and then add months until you hit the end date:
+    So, 19th August (add August to list), add a month to get 19th September 
+    (add September to list), add a month to get 19th October (add October to list), 
+    add a month to get 19th November (add November to list), add a month to get 
+    19th December -- ah, that's greater than today's date of December 12th, so exit.
+    So that bug doesn't get credit for being open in December.
+    The way to fix this is: a bug gets credit for being open in the month it's open,
+    then you set the date to the 1st of *that opening month*, and *then* increment
+    by months until you end up larger than today.
+    (Ditto for weeks.) */
+    var start = moment(startString);
+    var end = endString ? moment(endString) : moment();
+    var dates = [];
+
+    // first set to the beginning of this week/month/etc
+    start = start.startOf(increment);
+    // *now*, add increments on
+    while (start < end) {
+        dates.push(start.format(format));
+        start.add(1, increment);
+    }
+    return dates;
+}

@@ -1,20 +1,5 @@
 const moment = require("moment");
-
-var groupings = [
-    ["weekly", "YYYY-ww", "weeks"],
-    ["monthly", "YYYY-MM", "months"]
-];
-
-function datesBetween(startString, endString, format, increment) {
-    var start = moment(startString);
-    var end = endString ? moment(endString) : moment();
-    var dates = [];
-    while (start < end) {
-        dates.push(start.format(format));
-        start.add(1, increment);
-    }
-    return dates;
-}
+const widgetUtils = require("../widgetUtils");
 
 module.exports = function(options, callback) {
     // get the oldest issue
@@ -29,8 +14,8 @@ module.exports = function(options, callback) {
         var earliest = "9999-99-99";
         results.forEach(function(r) {
             if (r.created_at < earliest) earliest = r.created_at;
-            groupings.forEach(function(g) {
-                var dbt = datesBetween(r.created_at, r.closed_at, g[1], g[2]);
+            widgetUtils.timeIncrementGroupings.forEach(function(g) {
+                var dbt = widgetUtils.datesBetween(r.created_at, r.closed_at, g[1], g[2]);
                 dbt.forEach(function(datePeriod) {
                     if (!counts[g[0]][datePeriod]) { counts[g[0]][datePeriod] = 0; }
                     counts[g[0]][datePeriod] += 1;

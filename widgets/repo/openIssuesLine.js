@@ -41,7 +41,7 @@ module.exports = function(options, callback) {
                 type: "line",
                 data: {
                     adjustable: {
-                        Monthly: {
+                        Monthly: widgetUtils.fillGaps({
                             minimumLength: 5,
                             default: true,
                             labels: monthlyValues.map(n => { return n[0]; }),
@@ -51,9 +51,10 @@ module.exports = function(options, callback) {
                                 borderWidth: 2,
                                 pointStyle: "rect",
                                 label: "Open issues"
-                            }]
-                        },
-                        Weekly: {
+                            }],
+                            sliderInitial: 24 // two years
+                        }),
+                        Weekly: widgetUtils.fillGaps({
                             minimumLength: 5,
                             labels: weeklyValues.map(n => { return n[0]; }),
                             datasets: [{
@@ -62,8 +63,9 @@ module.exports = function(options, callback) {
                                 borderWidth: 2,
                                 pointStyle: "rect",
                                 label: "Open issues"
-                            }]
-                        },
+                            }],
+                            sliderInitial: 104 // two years
+                        }),
                     }
                 },
                 options: {

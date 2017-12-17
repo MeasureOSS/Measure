@@ -55,7 +55,7 @@ module.exports = function(options, callback) {
                     type: "line",
                     data: {
                         adjustable: {
-                            Monthly: {
+                            Monthly: widgetUtils.fillGaps({
                                 default: true,
                                 minimumLength: 5,
                                 labels: res.monthly.labels,
@@ -73,9 +73,10 @@ module.exports = function(options, callback) {
                                         borderColor: options.COLORS[2],
                                         label: "95th percentile (hrs)"
                                     }
-                                ]
-                            },
-                            Weekly: {
+                                ],
+                                sliderInitial: 24
+                            }),
+                            Weekly: widgetUtils.fillGaps({
                                 minimumLength: 5,
                                 labels: res.weekly.labels,
                                 datasets: [
@@ -92,8 +93,9 @@ module.exports = function(options, callback) {
                                         borderColor: options.COLORS[2],
                                         label: "95th percentile (hrs)"
                                     }
-                                ]
-                            }
+                                ],
+                                sliderInitial: 104
+                            })
                         }
                     },
                     options: {

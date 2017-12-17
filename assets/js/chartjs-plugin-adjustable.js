@@ -19,7 +19,7 @@ Chart.plugins.register({
                 ndatasets.forEach(function(nd) {
                     nd.data = nd.data.slice(nd.data.length - slider.valueAsNumber);
                 })
-                console.log("slidermax", slider.max, "sliderval", slider.valueAsNumber, "len", nlabels.length, "so show from", nlabels.length - slider.valueAsNumber);
+                console.log("graph", c, "slidermax", slider.max, "sliderval", slider.valueAsNumber, "len", nlabels.length, "so show from", nlabels.length - slider.valueAsNumber);
                 nlabels = nlabels.slice(nlabels.length - slider.valueAsNumber);
             } else {
                 // this is a change to the dataType
@@ -27,6 +27,13 @@ Chart.plugins.register({
                 slider.max = nlabels.length;
                 slider.min = c.config.data.adjustable[dataType].minimumLength || 1;
                 slider.value = rememberedSliderValues[dataType] || slider.max;
+                if (c.config.data.adjustable[dataType].sliderInitial && !rememberedSliderValues[dataType]) {
+                    // initial value of the slider is set. In the next tick, set to that
+                    setTimeout(function() {
+                        slider.value = c.config.data.adjustable[dataType].sliderInitial;
+                        choose(null, {update: true});
+                    }, 20);
+                }
             }
             if (dataType) currentDataType = dataType;
 
@@ -41,6 +48,7 @@ Chart.plugins.register({
             inp.type = "range";
             inp.className = "adjustable-graph-slider";
             inp.step = 1;
+            console.log(inp);
             if (c.canvas.nextElementSibling) {
                 c.canvas.parentNode.insertBefore(inp, c.canvas.nextElementSibling);
             } else {

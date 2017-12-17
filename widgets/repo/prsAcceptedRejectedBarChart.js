@@ -1,4 +1,5 @@
 const moment = require("moment");
+const widgetUtils = require("../widgetUtils");
 
 function groupby(result, keyFormat, labelFormat, durationStep, linkBase, options) {
     if (result.length == 0) { return {labels:[], datasets: []}; };
@@ -86,8 +87,8 @@ module.exports = function(options, callback) {
                         type: "bar",
                         data: {
                             adjustable: {
-                                Monthly: monthlyValues,
-                                Weekly: weeklyValues,
+                                Monthly: widgetUtils.fillGaps(monthlyValues),
+                                Weekly: widgetUtils.fillGaps(weeklyValues)
                             }
                         },
                         options: {

@@ -1,4 +1,5 @@
 const moment = require("moment");
+const widgetUtils = require("../widgetUtils");
 
 function groupby(result, keyFormat, labelFormat, durationStep, linkBase, options) {
     if (result.length == 0) { return {labels:[], datasets: []}; };
@@ -61,6 +62,7 @@ module.exports = function(options, callback) {
 
             var monthlyValues = groupby(result, "YYYY-MM", "MM-YYYY", "month", linkBase, options);
             monthlyValues.minimumLength = 5;
+            monthlyValues.sliderInitial = 24;
 
             /* get issue counts by day */
             options.db.issue.aggregate([
@@ -77,15 +79,15 @@ module.exports = function(options, callback) {
 
                 var weeklyValues = groupby(result, "YYYY-ww", "ww-YYYY", "week", linkBase, options);
                 weeklyValues.minimumLength = 5;
-
+                weeklyValues.sliderInitial = 104;
                 var graph = {
                     title: "Issues open and closed this month",
                     graphdata: JSON.stringify({
                         type: "bar",
                         data: {
                             adjustable: {
-                                Monthly: monthlyValues,
-                                Weekly: weeklyValues,
+                                Monthly: widgetUtils.fillGaps(monthlyValues),
+                                Weekly: widgetUtils.fillGaps(weeklyValues),
                             }
                         },
                         options: {
@@ -103,7 +105,7 @@ module.exports = function(options, callback) {
                                 yAxes: [{display: false, stacked: true, gridLines: {color: "#666666"}, ticks: {fontColor: "white"}}]
                             }
                         }
-                    })
+                    }, null, 2)
                 }
                 options.templates.graph(graph, callback);
             });

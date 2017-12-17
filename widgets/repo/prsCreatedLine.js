@@ -1,3 +1,5 @@
+var widgetUtils = require("../widgetUtils");
+
 module.exports = function(options, callback) {
     /* get issue counts by month */
     options.db.pull_request.aggregate([
@@ -11,7 +13,7 @@ module.exports = function(options, callback) {
                 type: "line",
                 data: {
                     adjustable: {
-                        Monthly: {
+                        Monthly: widgetUtils.fillGaps({
                             labels: result.map(n => n._id),
                             minimumLength: 5,
                             datasets: [
@@ -21,8 +23,9 @@ module.exports = function(options, callback) {
                                     borderWidth: 2,
                                     pointStyle: "rect"
                                 }
-                            ]
-                        }
+                            ],
+                            sliderInitial: 24
+                        })
                     }
                 },
                 options: {

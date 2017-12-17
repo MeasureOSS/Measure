@@ -121,3 +121,105 @@ module.exports.datesBetween = function(startString, endString, format, increment
     }
     return dates;
 }
+
+module.exports.fillGaps = function(data) {
+    /* graphs often have months or weeks in data, but if nothing happened in
+       a month, there'll be no entry at all for that month. This function
+       inspects the data and fills in the gaps with zeroes. */
+
+    function from_yyyymm(yyyymm) { return {
+        p: parseInt(yyyymm.split("-")[1], 10),
+        y: parseInt(yyyymm.split("-")[0], 10)
+    }}
+    function from_mmyyyy(mmyyyy) { return {
+        p: parseInt(mmyyyy.split("-")[0], 10),
+        y: parseInt(mmyyyy.split("-")[1], 10)
+    }}
+    function to_yyyymm(d) { return d.y + "-" + ("0" + d.p).slice(-2); }
+    function to_mmyyyy(d) { return ("0" + d.p).slice(-2) + "-" + d.y; }
+
+    function isProbablyWeekly(labels, _from) {
+        // this is not ideal. Check the labels, which are e.g., MM-YYYY
+        // to see if MM gets bigger than 12. If it does, this is probably
+        // weekly data.
+        // This will cause problems if by coincidence we only have weekly
+        // data for weeks less than 12.
+        for (var i=0; i<labels.length; i++) {
+            var p = _from(labels[i]);
+            if (p.p > 12) { return true; }
+        }
+        return false;
+    }
+
+    function walk(first, clockover, _from, _to, data) {
+        var nlabels = [];
+        var ndatasets = [];
+        var current = first;
+        var current_p = _from(first);
+        var label_pointer = 0;
+
+        var now = moment();
+        var now_formatted = to_yyyymm({
+            y: now.format("YYYY"), 
+            p: now.format(clockover == 53 ? "w" : "MM")
+        });
+        while (true) {
+            if (to_yyyymm(current_p) > now_formatted) { break; }
+            if (data.labels[label_pointer] == current) {
+                // we have a value for this time period
+                nlabels.push(data.labels[label_pointer]);
+                if (ndatasets.length == 0) {
+                    // create the correct number of datasets
+                    for (var i=0; i<data.datasets.length; i++) { ndatasets.push([]); }
+                }
+                for (var i=0; i<data.datasets.length; i++) { ndatasets[i].push(data.datasets[i].data[label_pointer]); }
+                label_pointer += 1;
+            } else {
+                // no value for this time period so use zeroes
+                nlabels.push(current);
+                if (ndatasets.length == 0) {
+                    // create the correct number of datasets
+                    for (var i=0; i<data.datasets.length; i++) { ndatasets.push([]); }
+                }
+                for (var i=0; i<data.datasets.length; i++) { ndatasets[i].push(0); }
+            }
+            // add one to current
+            current_p.p += 1;
+            if (current_p.p > clockover) {
+                current_p.p = 1;
+                current_p.y += 1;
+            }
+            current = _to(current_p);
+        }
+        // now reassemble data
+        data.labels = nlabels;
+        for (var i=0; i<ndatasets.length; i++) {
+            data.datasets[i].data = ndatasets[i];
+        }
+        return data;
+    }
+
+    // first, sanity check that the things we know how to fix are present
+    if (!data.labels || data.labels.length == 0) return data;
+    if (!data.datasets || data.datasets.length == 0) return data;
+    if (data.labels[0].match(/^[0-9][0-9]-[0-9][0-9][0-9][0-9]/)) {
+        // monthly or weekly data MM-YYYY
+        if (isProbablyWeekly(data.labels, from_mmyyyy)) {
+            return walk(data.labels[0], 53, from_mmyyyy, to_mmyyyy, data);
+        } else {
+            return walk(data.labels[0], 12, from_mmyyyy, to_mmyyyy, data);
+        }
+    } else if (data.labels[0].match(/^[0-9][0-9][0-9][0-9]-[0-9][0-9]/)) {
+        // monthly or weekly data YYYY-MM
+        if (isProbablyWeekly(data.labels, from_yyyymm)) {
+            return walk(data.labels[0], 53, from_yyyymm, to_yyyymm, data);
+        } else {
+            return walk(data.labels[0], 12, from_yyyymm, to_yyyymm, data);
+        }
+    } else {
+        // don't know what this is
+        return data;
+    }
+
+    return data;
+}

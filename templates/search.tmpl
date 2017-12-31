@@ -26,7 +26,7 @@ var searchdata = {{{searchdata}}};
 var searchbox = document.querySelector(".searchform input[type=search]");
 var sr = document.querySelector("ul.searchresults");
 var fuse = new Fuse(searchdata, {
-    keys: ["name"],
+    keys: ["name", "login"],
     threshold: 0.3
 });
 var waitTimer;

@@ -13,7 +13,7 @@ var fn = function(options, callback) {
             }
         }));
         delete(prs);
-        return options.db.issue.find({},{updated_at:1, html_url:1, title:1,user:1}).sort({updated_at:-1}).toArray();
+        return options.db.issue.find({pull_request: null},{updated_at:1, html_url:1, title:1,user:1}).sort({updated_at:-1}).toArray();
     }).then(issues => {
         events_list = events_list.concat(issues.map(o=>{
             return {

@@ -36,8 +36,9 @@ module.exports = function(options, callback) {
             var lis = [];
             Object.keys(orgsWith).forEach(orgname => {
                 if (orgsWith[orgname] > 0) {
-                    lis.push('<li><a href="' + options.url("org", orgname) + '">' + orgname + '</a>' + 
-                        " (" + orgsWith[orgname] + " PRs merged)");
+                    lis.push(['<li><a href="' + options.url("org", orgname) + '">' + orgname + '</a>' + 
+                        " (" + orgsWith[orgname] + " PR" + (orgsWith[orgname] == 1 ? "" : "s") + " merged)", 
+                        orgsWith[orgname]]);
                 }
             });
             if (lis.length == 0) {
@@ -45,7 +46,7 @@ module.exports = function(options, callback) {
             } else {
                 lis.sort((a, b) => { return b[1] - a[1]; })
                 html.push("<ul>");
-                html = html.concat(lis.map(li => { return lis[0]; }))
+                html = html.concat(lis.map(li => { return li[0]; }))
                 html.push("</ul>");
             }
 

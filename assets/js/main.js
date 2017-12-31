@@ -154,6 +154,20 @@ function expandGraph(node, graphdata) {
     dc.appendChild(d);
     document.body.appendChild(dc);
     graphdata.options.maintainAspectRatio = false;
+
+    var dashboardType = document.querySelector("nav h2").dataset.dashboardType;
+    var graphtitle = {
+        repo: "Repository",
+        contributor: "Contributor",
+        team: "Team",
+        org: "Organization"
+    }[dashboardType] || dashboardType;
+    graphdata.options.title = {
+        display: true, 
+        text: node.querySelector("h1").textContent + ": " + 
+            graphtitle + " " + document.querySelector("nav h2").textContent,
+        fontColor: "white"
+    };
     new Chart(cv, graphdata);
 }
 

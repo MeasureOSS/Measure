@@ -13,7 +13,7 @@ module.exports = function(options, callback) {
     for (var orgname in options.org2People) {
         if (options.config.my_organizations.indexOf(orgname) == -1) continue;
         options.org2People[orgname].forEach(p => {
-            if (p.left < maxage) return;
+            if (p.left != "" && (p.left < maxage)) return;
             myorglogins.add(p.login);
         });
     }
@@ -49,7 +49,7 @@ module.exports = function(options, callback) {
 
             repos.forEach(rc => {
                 var repo = rc[0], count = rc[1];
-                html.push("<details open><summary><h2>" + repo + " (" + count + " contributions)</h2></summary>");
+                html.push("<details><summary><h2>" + repo + " (" + count + " contributions)</h2></summary>");
                 html.push("<ul>");
                 var logins = new Set([...Object.keys(prsByRepo[repo] || {}), ...Object.keys(issuesByRepo[repo] || {})]);
                 var lis = [];

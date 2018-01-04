@@ -19,7 +19,7 @@ output_directory: dashboard
 
 # List here the directory where you want the admin database
 # to be written. If this directory doesn't exist, it will be created.
-database_directory: dashboard
+database_directory: database
 
 # Specify a list of organizations here. This is NOT a GitHub
 # organization; it is an org as added by you in the Organizations

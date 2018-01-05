@@ -128,7 +128,11 @@ function fail($code, $msg, $ex = null) {
         "msg" => $msg
     );
     if (!is_null($ex)) {
-        $out["exception"] = $ex;
+        $out["exception"] = array(
+            "message" => $ex->getMessage(),
+            "line" => $ex->getLine(),
+            "file" => $ex->getFile()
+        );
     }
     echo(json_encode($out) . "\n");
     die();

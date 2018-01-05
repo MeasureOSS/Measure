@@ -285,14 +285,17 @@ h2.incexcorg img {
 @media only screen and (min-width: 480px) {
   .main { grid-template-columns: 1fr 1fr; }
   h2.incexcorg { grid-column: auto / span 2; }
+  section.bignumber big { font-size: 200%; }
 }
 @media only screen and (min-width: 800px) {
   .main { grid-template-columns: 1fr 1fr 1fr; }
   h2.incexcorg { grid-column: auto / span 3; }
+  section.bignumber big { font-size: 300%; }
 }
 @media only screen and (min-width: 1400px) {
   .main { grid-template-columns: 1fr 1fr 1fr 1fr; }
   h2.incexcorg { grid-column: auto / span 4; }
+  section.bignumber big { font-size: 400%; }
 }
 
 h1 { font-weight: 300; }

@@ -23,8 +23,12 @@ function groupby(result, keyFormat, labelFormat, durationStep, linkBase, options
         labels.push(minGroup.format(labelFormat));
         datasets.merged.push(byGroup.merged[key] || 0);
         datasets.rejected.push(byGroup.rejected[key] || 0);
-        links.merged.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Amerged%20closed%3A" + minGroup.format("YYYY-MM-DD") + ".." + minGroup.add(1, durationStep).format("YYYY-MM-DD"));
-        links.rejected.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Aclosed%20is%3Aunmerged%20closed%3A" + minGroup.format("YYYY-MM-DD") + ".." + minGroup.add(1, durationStep).format("YYYY-MM-DD"));
+        var onone = minGroup.clone();
+        onone.add(1, durationStep);
+        links.merged.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Amerged%20closed%3A" + 
+            minGroup.format("YYYY-MM-DD") + ".." + onone.format("YYYY-MM-DD"));
+        links.rejected.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Aclosed%20is%3Aunmerged%20closed%3A" + 
+            minGroup.format("YYYY-MM-DD") + ".." + onone.format("YYYY-MM-DD"));
         minGroup.add(1, durationStep);
     }
     return {

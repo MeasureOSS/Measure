@@ -7,4 +7,17 @@
                     {{{html}}}
                 </article>
                 {{/widgets}}
+    
+{{#executedQueries.length}}
+<article data-widget="debug-queries">
+<section>
+<h1>Debug: Queries</h1>
+<ul>
+    {{#executedQueries}}
+        <li>{{q}}</li>
+    {{/executedQueries}}
+</ul>
+</section>
+</article>
+{{/executedQueries.length}}
 {{> footer.tmpl}}

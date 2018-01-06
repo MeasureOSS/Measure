@@ -68,6 +68,7 @@ function getAllOrgUsers(options) {
 
                 // and override config to have orgnames in lowercase as well, so that when
                 // widgets use them to look up entries in org2People, it works
+		options.userConfig.my_organizationsTitle = options.userConfig.my_organizations;
                 options.userConfig.my_organizations = options.userConfig.my_organizations.map(n => n.toLowerCase());
 
                 return resolve(options);

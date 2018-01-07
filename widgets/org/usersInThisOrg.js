@@ -9,7 +9,10 @@ module.exports = function(options, callback) {
     })
     in_now.sort((a,b) => { return a.login.localeCompare(b.login); })
     in_then.sort((a,b) => { return a.left.localeCompare(b.left); })
-    in_now = in_now.map(u => { return {html: '<a href="' + options.url("contributor", u.login) + '">' + u.login + '</a>'}});
+    in_now = in_now.map(u => { return {
+        html: '<a href="' + options.url("contributor", u.login) + '">' + u.login + '</a> (since ' +
+            u.joined + ")"
+    }});
     in_then = in_then.map(u => { return {
         html: '<a href="' + options.url("contributor", u.login) + '">' + u.login + '</a> (' +
             u.joined + " &ndash; " + u.left + ")"

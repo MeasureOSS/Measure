@@ -1,6 +1,6 @@
 # MeasureOSS
 
-MeasureOSS is the working name for this prototype. We don't like the name either, and we're busy thinking of a better one.
+MeasureOSS is the working name for this prototype. We're not sold on the name yet either. As has been [pointed out](https://martinfowler.com/bliki/TwoHardThings.html), naming things is hard. We're busy thinking of a better name, but if you have a suggestion let us know!
 
 ## What is MeasureOSS?
 
@@ -12,7 +12,7 @@ Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master
 
 ## This is a prototype
 
-Please be aware that this is beta quality software. That said, we welcome your feedback on both the concept and implementation. Additionally, the metrics we track are still being decided. Feel free to use the issue tracker to suggest the addition, removal, or modification of widgets. 
+Please be aware that this is beta quality software. It should work as expected, but documentation is lacking and setup is still manual. Both issues are important to us and will be addressed as the project matures. That said, we welcome your feedback on both the concept and implementation. Additionally, the metrics we track are still being decided. Feel free to use the issue tracker to suggest the addition, removal, or modification of widgets. We very much want this to be a community effort!
 
 ## Initial setup
 

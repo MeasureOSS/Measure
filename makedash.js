@@ -219,6 +219,20 @@ function apidbActionChanges(options) {
     });
 }
 
+function createMongoIndexes(options) {
+    let indexes = [
+        {collection: "pull_request", fields: {"updated_at":1}}
+    ];
+    return new Promise((resolve, reject) => {
+        async.each(indexes, (index, done) => {
+            options.db.collection(index.collection).ensureIndex(index.fields, {}, done);
+        }, err => {
+            if (err) return reject(err);
+            resolve(options);
+        })
+    })
+}
+
 function leave(options) {
     /* And shut all our stuff down. Don't close down ghcrawler itself. */
     options.db.close();
@@ -254,6 +268,7 @@ loads.loadTemplates()
     .then(checking.confirmActivity)
     .then(pages.calculateCodeHash)
     .then(pages.previousGeneratedAtAndHash)
+    .then(createMongoIndexes)
     .then(api)
     .then(apidb)
     .then(apiSecret)

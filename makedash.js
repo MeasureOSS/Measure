@@ -221,7 +221,9 @@ function apidbActionChanges(options) {
 
 function createMongoIndexes(options) {
     let indexes = [
-        {collection: "pull_request", fields: {"updated_at":1}}
+        {collection: "pull_request", fields: {"updated_at":1}},
+        {collection: "issue_comment", fields: {"updated_at":1}},
+        {collection: "issue", fields: {"updated_at":1}}
     ];
     return new Promise((resolve, reject) => {
         async.each(indexes, (index, done) => {

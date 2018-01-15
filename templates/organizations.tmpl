@@ -2,11 +2,11 @@
     <section>
         <table class="repolist sortable">
             <thead>
-                <tr><th>Organization</th><th>Number of members</th></tr>
+                <tr><th>Organization</th><th>Number of members (currently/who have since left)</th></tr>
             </thead>
             <tbody>
                 {{#orgs}}
-                <tr><td><a href="{{link}}">{{title}}</a></td><td>{{count}}</td></tr>
+                <tr><td><a href="{{link}}">{{title}}</a></td><td>{{count_current}}/{{count_left}}</td></tr>
                 {{/orgs}}
             </tbody>
         </table>

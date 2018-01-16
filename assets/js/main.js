@@ -60,29 +60,40 @@ function storeAuthToken(authtoken) {
 
 var flash = (function() {
     var fm = document.getElementById("flash_messages");
-    var p = document.createElement("p")
-    var ul = document.createElement("ul");
+    var remembered = document.createElement("ul");
+    remembered.className = "remembered";
+    var displaying = document.createElement("ul");
+    displaying.className = "displaying";
     var btn = document.createElement("button");
-    btn.appendChild(document.createTextNode("☰"));
+    btn.appendChild(document.createTextNode("!"));
     fm.appendChild(btn);
-    fm.appendChild(p);
-    fm.appendChild(ul);
-    btn.onclick = function() { ul.style.display = "block"; }
-    ul.onclick = function() { ul.style.display = "none"; }
+    fm.appendChild(remembered);
+    fm.appendChild(displaying);
+    btn.style.display = "none";
+    btn.onclick = function() {
+        remembered.style.display = "block";
+    }
+    remembered.onclick = function() {
+        remembered.style.display = "none";
+    }
     function f(message, err) {
         if (err) console.error(err);
-        p.textContent = message;
-        p.className = "showing";
+        btn.style.display = "block";
+        var displaying_li = document.createElement("li");
+        displaying_li.textContent = message;
+        displaying.appendChild(displaying_li);
         var dt = (new Date()).toLocaleTimeString();
         var removeTimer = setTimeout(function() {
-            p.className = "";
-            p.innerHTML = "";
+            displaying_li.style.opacity = 0;
+            setTimeout(function() {
+                displaying.removeChild(displaying_li);
+            }, 250);
             var li = document.createElement("li");
             li.appendChild(document.createTextNode("[" + dt + "] " + message));
-            if (ul.childNodes.length == 0) {
-                ul.appendChild(li);
+            if (remembered.childNodes.length == 0) {
+                remembered.appendChild(li);
             } else {
-                ul.insertBefore(li, ul.firstChild);
+                remembered.insertBefore(li, remembered.firstChild);
             }
         }, 2000);
     }

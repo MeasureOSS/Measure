@@ -1,1 +1,0 @@
-../contributor/issueCount.js

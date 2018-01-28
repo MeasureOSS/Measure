@@ -3,7 +3,7 @@ const widgetUtils = require("../widgetUtils");
 
 module.exports = function(options, callback) {
     // get the oldest PR
-    options.db.pull_request.find({closed_at:null, closed_at: "pies"}, {created_at:1}).sort({created_at: 1}).toArray().then(results => {
+    options.db.pull_request.find({closed_at:null}, {created_at:1}).sort({created_at: 1}).toArray().then(results => {
 
         var counts = {
             weekly: {}, 

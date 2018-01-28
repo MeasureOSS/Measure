@@ -40,6 +40,7 @@ var fn = function(options, callback) {
                 early.sort();
                 late.sort();
                 var result = {
+                    title: "When seen",
                     from_title: "First Seen",
                     from: moment(early[0]).format("YYYY-MM-DD"),
                     to_title: "Last Seen",
@@ -50,5 +51,4 @@ var fn = function(options, callback) {
         });
     })
 }
-fn.extraClasses = "wide";
 module.exports = fn;

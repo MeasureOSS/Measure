@@ -4,8 +4,6 @@ const widgetUtils = require("../widgetUtils");
 module.exports = function(options, callback) {
     // get the oldest issue
     options.db.issue.find({pull_request:null, closed_at:null}, {created_at:1}).sort({created_at: 1}).toArray().then(results => {
-        if (results.length == 0) { return callback(); }
-
         var counts = {
             weekly: {}, 
             monthly: {}

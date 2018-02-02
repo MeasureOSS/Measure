@@ -6,7 +6,9 @@
             </thead>
             <tbody>
                 {{#orgs}}
-                <tr><td><a href="{{link}}">{{title}}</a></td><td>{{count_current}}/{{count_left}}</td></tr>
+                <tr>
+                    <td><a href="{{link}}">{{title}}</a></td>
+                    <td sorttable_customkey="{{count_current}}">{{count_current}}/{{count_left}}</td></tr>
                 {{/orgs}}
             </tbody>
         </table>

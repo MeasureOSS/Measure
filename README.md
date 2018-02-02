@@ -19,6 +19,19 @@ Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master
 * Should treat the concept of contributors as first class citizens
     * Your community is really about the people that create the code
 
+## Sections
+* Overview
+    * Contains a dashboard with an overview of all repositories
+* Repositories
+    * Contains dashboards for individual repositories
+* Organizations
+    * Contains dashboards aggregated by organization
+* Teams
+    * Contains dashboards aggregated by team (which are groups of repositories defined by you)
+* Reports
+    * Contains individual reports 
+* Contributors
+    * Contains dashboards for individual contributors
 
 ## This is a prototype
 

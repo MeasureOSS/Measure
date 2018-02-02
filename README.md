@@ -2,9 +2,9 @@
 
 Measure is the working name for this prototype. We're not sold on the name yet either. As has been [pointed out](https://martinfowler.com/bliki/TwoHardThings.html), naming things is hard. We're busy thinking of a better name, but if you have a suggestion let us know!
 
-## What is MeasureOSS?
+## What is Measure?
 
-MeasureOSS is a simple widget based dashboard that takes a contributor-focused view of open source community analytics.
+At its core Measure is, for lack of a better term, a contributor relationship management system. Measure consists of easy to understand widgets that can be arbitrarily displayed to build dashboards. It allows you to understand how people as individuals and as organizations are interacting with open source projects. It’s metrics that focus not only on code, but on contributors. 
 
 Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master/assets/img/MeasureOSS-11052017.png)
 

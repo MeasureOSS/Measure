@@ -10,6 +10,16 @@ Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master
 
 ## Philosophy
 
+* Should be simple
+    * We’re willing to trade some flexibility for simplicity
+* Should be visually appealing
+* Should offer an opinionated default experience, but be extensible
+    * We want useful actionable information out of the box, but if you want something different you should be able to easily do so
+* Should be able to completely separate inside and outside contributions
+* Should treat the concept of contributors as first class citizens
+    * Your community is really about the people that create the code
+
+
 ## This is a prototype
 
 Please be aware that this is beta quality software. It should work as expected, but documentation is lacking and setup is still manual. Both issues are important to us and will be addressed as the project matures. That said, we welcome your feedback on both the concept and implementation. Additionally, the metrics we track are still being decided. Feel free to use the issue tracker to suggest the addition, removal, or modification of widgets. We very much want this to be a community effort!

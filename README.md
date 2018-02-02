@@ -37,6 +37,10 @@ Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master
 
 Please be aware that this is beta quality software. It should work as expected, but documentation is lacking and setup is still manual. Both issues are important to us and will be addressed as the project matures. That said, we welcome your feedback on both the concept and implementation. Additionally, the metrics we track are still being decided. Feel free to use the issue tracker to suggest the addition, removal, or modification of widgets. We very much want this to be a community effort!
 
+From the v0.1 release notes:
+
+    This is the initial release of Measure. It should be relatively stable, reasonably easy to install, and work mostly as expected. There may be some bugs lurking and the docs do need some improvement. We're hard at work on v0.2 which should improve usability, provide easier installation, have more complete docs, and increase stability. The next release from there should be v1.0. Please use the issue tracker for feedback. Let us know what you think!
+
 ## Initial setup
 
 (most of these steps will get automated. But they aren't, yet.)

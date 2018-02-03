@@ -41,6 +41,8 @@ From the v0.1 release notes:
 
     This is the initial release of Measure. It should be relatively stable, reasonably easy to install, and work mostly as expected. There may be some bugs lurking and the docs do need some improvement. We're hard at work on v0.2 which should improve usability, provide easier installation, have more complete docs, and increase stability. The next release from there should be v1.0. Please use the issue tracker for feedback. Let us know what you think!
 
+A huge thank you to [Linux Fund](http://linuxfund.org/) for sponsoring the initial release of Measure!
+
 ## Initial setup
 
 (most of these steps will get automated. But they aren't, yet.)

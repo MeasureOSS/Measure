@@ -9,7 +9,7 @@ module.exports = function(options, callback) {
             { $sort: { issue_url: 1, created_at: 1 } },
             { $group: { _id: "$issue_url", d: { $first: "$$ROOT" } } },
             { $project: { "d.issue_url": 1, "d.created_at": 1 } }
-        ], (err, comments) => {
+        ], {allowDiskUse: true}, (err, comments) => {
             if (err) return callback(err);
 
             // pair up issues and first issue comment

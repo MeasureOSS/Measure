@@ -5,7 +5,7 @@ module.exports = function(options, callback) {
     options.db.pull_request.aggregate([
         { $group: { _id: { $substr: ['$created_at', 0, 7] }, issue_count: { $sum: 1 } } },
         { $sort: { _id: 1 } }
-    ], (err, result) => {
+    ], {allowDiskUse: true}, (err, result) => {
         if (err) return callback(err);
         var graph = {
             title: "PRs created",

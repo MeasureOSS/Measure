@@ -7,6 +7,7 @@ week/month/quarter/year. Should not show if not authenticated.
 */
 var moment = require("moment");
 var async = require("async");
+const stringify = require('csv-stringify/lib/sync')
 
 module.exports = function(options, callback) {
     var people2Org = {}, peopleInMyOrgs = {};
@@ -130,12 +131,28 @@ module.exports = function(options, callback) {
                 </script>
                 `;
 
-            var html = dropdown + table + filter_script;
+            var csvlink = '<p><a href="recentContributors.csv">(download as CSV)</a></p>';
+
+            var html = csvlink + dropdown + table + filter_script;
+            var csv = stringify(peopleList.map(p => {
+                return {
+                    github_username: p.login,
+                    email: p.email,
+                    organizations: Array.from(p.org).join(", "),
+                    last_contribution: p.date.toISOString()
+                }
+            }), {
+                columns: ["github_username", "email", "organizations", "last_contribution"],
+                header: true
+            });
 
             return callback(null, {
                 title: "Recent Contributors (outside the organization)",
                 html: html,
-                requires_authentication: true
+                requires_authentication: true,
+                additional_files: {
+                    "recentContributors.csv": csv
+                }
             })
 
 

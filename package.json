@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "async": "^2.5.0",
+    "csv-stringify": "^2.0.4",
     "folder-hash": "^1.1.2",
     "fs-extra": "^3.0.1",
     "glob": "^7.1.2",

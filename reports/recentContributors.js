@@ -9,13 +9,24 @@ var moment = require("moment");
 var async = require("async");
 
 module.exports = function(options, callback) {
-    var people2Org = {};
+    var people2Org = {}, peopleInMyOrgs = {};
     for (var orgname in options.org2People) {
+        var isMyOrg = options.config.my_organizations.indexOf(orgname) != -1;
         options.org2People[orgname].forEach(p => {
-            if (p.left != "") return; 
+            if (isMyOrg) {
+                var joined = p.joined && p.joined != "" ? moment(p.joined) : moment("1900-01-01");
+                var left = p.left && p.left != "" ? moment(p.left) : moment();
+                peopleInMyOrgs[p.login] = {joined: joined, left: left};
+            }
             if (!people2Org[p.login]) people2Org[p.login] = new Set();
             people2Org[p.login].add(orgname);
         });
+    }
+
+    function inMyOrg(login, date) {
+        var whenInMyOrg = peopleInMyOrgs[login];
+        if (!whenInMyOrg) return false;
+        return date.isBetween(whenInMyOrg.joined, whenInMyOrg.left);
     }
 
     var mostRecentUserAction = {};
@@ -28,10 +39,14 @@ module.exports = function(options, callback) {
                 if (mr) {
                     mr = moment(mr);
                     if (ca.isAfter(mr)) {
-                        mostRecentUserAction[i.closed_by.login] = ca;
+                        if (!inMyOrg(i.closed_by.login, ca)) {
+                            mostRecentUserAction[i.closed_by.login] = ca;
+                        }
                     }
                 } else {
-                    mostRecentUserAction[i.closed_by.login] = ca;
+                    if (!inMyOrg(i.closed_by.login, ca)) {
+                        mostRecentUserAction[i.closed_by.login] = ca;
+                    }
                 }
             }
 
@@ -40,10 +55,14 @@ module.exports = function(options, callback) {
             if (mr) {
                 mr = moment(mr);
                 if (oa.isAfter(mr)) {
-                    mostRecentUserAction[i.user.login] = oa;
+                    if (!inMyOrg(i.user.login, oa)) {
+                        mostRecentUserAction[i.user.login] = oa;
+                    }
                 }
             } else {
-                mostRecentUserAction[i.user.login] = oa;
+                if (!inMyOrg(i.user.login, oa)) {
+                    mostRecentUserAction[i.user.login] = oa;
+                }
             }
         })
 
@@ -114,7 +133,7 @@ module.exports = function(options, callback) {
             var html = dropdown + table + filter_script;
 
             return callback(null, {
-                title: "Recent Contributors",
+                title: "Recent Contributors (outside the organization)",
                 html: html,
                 requires_authentication: true
             })

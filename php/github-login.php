@@ -67,6 +67,10 @@ function do_code() {
         $inorg = FALSE;
     }
     $auth = github_create_token($userdata["data"]->login, $at);
+    
+    // set the auth token as a cookie
+    setcookie("MeasureAuth", $auth);
+    // and return it so it can be set in JS
     showError(signed_in_with("GitHub", $userdata["data"]->login, $auth));
 }
 

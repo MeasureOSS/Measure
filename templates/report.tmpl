@@ -1,5 +1,27 @@
 {{> mainlessheader.tmpl}}
             <div class="main wrapper clearfix report">
+{{#requires_authentication}}
+<?php
+require("../authlist.php");
+
+$report = <<<EOF
                 <h1>{{title}}</h1>
                 {{{html}}}
+EOF;
+$isok = generic_verify($_COOKIE["MeasureAuth"]);
+
+if ($isok) {
+    echo $report;
+} else {
+    echo '<p>This report is only available after logging in. Please ';
+    echo '<a href="../login.php" class="login-required-link">log in</a> to view.</p>';
+}
+?>
+
+{{/requires_authentication}}
+
+{{^requires_authentication}}
+                <h1>{{title}}</h1>
+                {{{html}}}
+{{/requires_authentication}}
 {{> footer.tmpl}}

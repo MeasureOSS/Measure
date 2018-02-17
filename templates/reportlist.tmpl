@@ -2,7 +2,14 @@
             <div class="main wrapper clearfix report">
                 <ul>
                 {{#reports}}
-                    <li><a href="$$BASEURL$$/reports/{{slug}}.html">{{title}}</a></li>
+                    <li>
+                        <a 
+                            href="$$BASEURL$$/reports/{{slug}}.{{extension}}"
+                            {{#requires_authentication}}
+                            class="requires_authentication"
+                            {{/requires_authentication}}
+                        >{{title}}</a>
+                    </li>
                 {{/reports}}
                 </ul>
             </div>

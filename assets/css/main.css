@@ -140,7 +140,7 @@ body {
     font-weight: 300;
 }
 
-section button, section input, section select {
+section button, section input, section select, .report select {
   color: black;
 }
 
@@ -152,6 +152,20 @@ section button, section input, section select {
 
 .main.report {
   display: block;
+}
+
+p.is-signed-in button { color: black; margin: 0 1em; display: inline-block; }
+
+.main.report li a.requires_authentication {
+  padding-right: 20px;
+  background: url(../img/lock.svg) center right no-repeat;
+  background-size: contain;
+}
+
+.main.report a.login-required-link {
+  padding: 0.5em;
+  background: white;
+  color: black;
 }
 
 .main.report table th {
@@ -369,6 +383,7 @@ https://thenounproject.com/latyshevaoksana/collection/vending-machine/?i=880796
 https://thenounproject.com/search/?q=error&i=560230
 https://thenounproject.com/search/?q=search&i=591162
 https://thenounproject.com/search/?q=close&i=392991
+https://thenounproject.com/term/lock/424/
 */
 nav + nav li a.nav-repos::before { background-image: url(../img/Dashboards.svg); height: 18px; width: 18px; }
 nav + nav li a.nav-orgs::before { background-image: url(../img/Groups.svg); }

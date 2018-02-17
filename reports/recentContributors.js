@@ -47,66 +47,79 @@ module.exports = function(options, callback) {
             }
         })
 
-        var peopleList = [];
-        for (var k in mostRecentUserAction) {
-            peopleList.push({
-                login: k, 
-                date: mostRecentUserAction[k],
-                yyyymmdd: mostRecentUserAction[k].format("YYYY-MM-DD"),
-                org: people2Org[k] || [],
-                ts: mostRecentUserAction[k].unix()
+        // need to fetch email addresses for everyone
+        var login_list = Object.keys(mostRecentUserAction);
+        options.db.user.find({login: {$in: login_list}}, {login:1, email:1}).toArray().then(function(users) {
+
+            var user2Email = {};
+            users.forEach(function(u) {
+                user2Email[u.login] = u.email;
             })
-        }
-        peopleList.sort(function(b, a) { 
-            return a.ts - b.ts;
-        });
 
-        var trs = peopleList.map(function(p) {
-            var orglist = Array.from(p.org).map(function(o) {
-                return '<a href="' + options.url("org", o) + '">' + o + '</a>';
-            }).join("/");
-            var contributor = '<a href="' + options.url("contributor", p.login) + '">' + p.login + "</a>";
-            return "<tr><td>" + contributor + "</td><td>" + orglist + 
-                "</td><td sorttable_customkey='"+p.ts+"'>" + p.yyyymmdd + "</td></tr>";
-        })
-
-        var table = '<table id="report_t" class="sortable">' +
-            '<thead>\n<tr><th>Contributor</th><th>Organisations</th>' +
-            '<th>Most recent contribution</th></tr>\n</thead>\n<tbody>' +
-            trs.join("\n") + "<tbody></table>";
-
-        var dropdown = '<p>Show contributors from last ' +
-            '<select id="report_dd" onchange="report_filter()"><option value="365">year</option>' +
-            '<option value="90">quarter</option><option value="30">month</option>' +
-            '<option value="7">week</option></select></p>';
-        var filter_script = `<script>
-            var report_dd = document.getElementById("report_dd");
-            var report_t = document.getElementById("report_t");
-            function report_filter() {
-                var days = report_dd.options[report_dd.selectedIndex].value;
-                var ts = new Date().getTime();
-                var then = ts - (days * 24 * 60 * 60 * 1000);
-                var then_yyyymmdd = (new Date(then)).toISOString().substring(0, 10);
-                console.log("looking for dates bigger than", then_yyyymmdd);
-                Array.prototype.slice.call(report_t.rows).forEach(function(r) {
-                    var dval = r.cells[2].textContent;
-                    if (dval > then_yyyymmdd) {
-                        r.style.display = ""
-                    } else {
-                        r.style.display = "none";
-                    }
-                });
+            var peopleList = [];
+            for (var k in mostRecentUserAction) {
+                peopleList.push({
+                    login: k,
+                    email: user2Email[k],
+                    date: mostRecentUserAction[k],
+                    yyyymmdd: mostRecentUserAction[k].format("YYYY-MM-DD"),
+                    org: people2Org[k] || [],
+                    ts: mostRecentUserAction[k].unix()
+                })
             }
-            report_filter();
-            </script>
-            `;
+            peopleList.sort(function(b, a) { 
+                return a.ts - b.ts;
+            });
 
-        var html = dropdown + table + filter_script;
+            var trs = peopleList.map(function(p) {
+                var orglist = Array.from(p.org).map(function(o) {
+                    return '<a href="' + options.url("org", o) + '">' + o + '</a>';
+                }).join("/");
+                var contributor = '<a href="' + options.url("contributor", p.login) + '">' + p.login + "</a>";
+                return "<tr><td>" + contributor + "</td><td>" + (p.email || "") + "</td><td>" + orglist + 
+                    "</td><td sorttable_customkey='"+p.ts+"'>" + p.yyyymmdd + "</td></tr>";
+            })
 
-        return callback(null, {
-            title: "Recent Contributors",
-            html: html,
-            requires_authentication: true
+            var table = '<table id="report_t" class="sortable">' +
+                '<thead>\n<tr><th>Contributor</th><th>Email</th><th>Organisations</th>' +
+                '<th>Most recent contribution</th></tr>\n</thead>\n<tbody>' +
+                trs.join("\n") + "<tbody></table>";
+
+            var dropdown = '<p>Show contributors from last ' +
+                '<select id="report_dd" onchange="report_filter()"><option value="365">year</option>' +
+                '<option value="90">quarter</option><option value="30">month</option>' +
+                '<option value="7">week</option></select></p>';
+            var filter_script = `<script>
+                var report_dd = document.getElementById("report_dd");
+                var report_t = document.getElementById("report_t");
+                function report_filter() {
+                    var days = report_dd.options[report_dd.selectedIndex].value;
+                    var ts = new Date().getTime();
+                    var then = ts - (days * 24 * 60 * 60 * 1000);
+                    var then_yyyymmdd = (new Date(then)).toISOString().substring(0, 10);
+                    console.log("looking for dates bigger than", then_yyyymmdd);
+                    Array.prototype.slice.call(report_t.rows).forEach(function(r) {
+                        var dval = r.cells[3].textContent;
+                        if (dval > then_yyyymmdd) {
+                            r.style.display = ""
+                        } else {
+                            r.style.display = "none";
+                        }
+                    });
+                }
+                report_filter();
+                </script>
+                `;
+
+            var html = dropdown + table + filter_script;
+
+            return callback(null, {
+                title: "Recent Contributors",
+                html: html,
+                requires_authentication: true
+            })
+
+
         })
     })
 }

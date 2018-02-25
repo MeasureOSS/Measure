@@ -48,7 +48,7 @@ A huge thank you to [Linux Fund](http://linuxfund.org/) for sponsoring the initi
 (most of these steps will get automated. But they aren't, yet.)
 
 Requirements:
-* web server with PHP support
+* web server with PHP (5.5+) support
 * node 6.x.
 * git
 

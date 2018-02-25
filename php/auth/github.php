@@ -6,7 +6,7 @@ function github_create_token($login, $access_token) {
     global $secret;
     $t = time();
     $output = "github:" . $login . ":" . $access_token . ":" . $t;
-    $c = crypt("$output:$secret");
+    $c = password_hash("$output:$secret", PASSWORD_DEFAULT);
     $auth = "$output:$c";
     return $auth;
 }
@@ -16,8 +16,7 @@ function github_verify_token($auth) {
     $parts = explode(":", $auth);
     if (count($parts) != 5) return FALSE;
     $base = $parts[0] . ":" . $parts[1] . ":" . $parts[2] . ":" . $parts[3];
-    $c = crypt("$base:$secret", $parts[4]);
-    if (!hash_equals($parts[4], $c)) { return FALSE;  }
+    if (!password_verify("$base:$secret", $parts[4])) { return FALSE; }
     return TRUE;
 }
 

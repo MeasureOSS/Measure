@@ -175,7 +175,7 @@ function giveToken() {
     global $secret;
     $r = bin2hex(openssl_random_pseudo_bytes(16));
     $t = time();
-    $c = crypt("$r:$t:$secret");
+    $c = password_hash("$r:$t:$secret", PASSWORD_DEFAULT);
     $token = "$r:$t:$c";
     echo json_encode(array("token" => $token)) . "\n";
     die();
@@ -190,8 +190,7 @@ function verifyToken($token) {
     $age = $now - $t;
     if ($age > 3600 || $age < 0) { fail(400, "Out-of-date token"); }
     $r = $parts[0];
-    $c = crypt("$r:$t:$secret", $parts[2]);
-    if (!hash_equals($parts[2], $c)) { fail(400, "Invalid token");  }
+    if (!password_verify("$r:$t:$secret", $parts[2])) { fail(400, "Invalid token"); }
 }
 
 function check_query_inputs() {

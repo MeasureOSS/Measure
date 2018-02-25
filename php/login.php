@@ -24,7 +24,7 @@ $html .= '<script>window.addEventListener("load", function() { ' .
     '        document.querySelector("p.is-signed-in").appendChild(btn);' .
     '        btn.addEventListener("click", function() {' .
     '            window.localStorage.removeItem("jp-authtoken");' .
-    '            location.reload();' .
+    '            location.href="logout.php";' .
     '        }, false);' .
     '    }' .
     '    }, 1000);' .

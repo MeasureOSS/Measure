@@ -12,7 +12,7 @@ var API = (function() {
             try {
                 j = JSON.parse(x.responseText);
             } catch(e) {
-                done(new Error(e));
+                return done(new Error(e));
             }
             if (j.exception) {
                 return done(j.error);

@@ -296,8 +296,25 @@ loads.loadTemplates()
             console.error("Problem message:")
             console.error(e.message);
         } else {
-            console.error("Internal error. (Internal errors are a bug in the code and should be reported.)");
-            console.error(e.message);
-            console.error(e.stack);
+            require("stacktrace-js").fromError(e)
+                .then(function(frames) {
+                    var lineno = 0, sourcefile = "(an unknown file)";
+                    if (frames.length) {
+                        lineno = frames[0].lineNumber + ":" + frames[0].columnNumber;
+                        sourcefile = path.relative(__dirname, frames[0].fileName);
+                    }
+                    console.error("\nAn internal error has occurred: " + e.message + ".\n" +
+                        "Internal errors are by definition a bug in Measure, and should be reported.\n" +
+                        "The error was detected at line " + lineno + " of '" + sourcefile + "'.\n" + 
+                        "This should never happen, and I am halting in abject failure.");
+                })
+                .catch(function(ste) {
+                    console.error("\nAn internal error has occurred: " + e.message + ".\n" +
+                        "Internal errors are by definition a bug in Measure, and should be reported.\n" +
+                        "Additionally, while handling that error another error occurred: " + 
+                            ste.message + ".\n" +
+                        "The original error may have been " + e.stack.split("\n")[1].trim() + "\n" +
+                        "This should never happen, and I am halting in abject failure.");
+                })
         }
     });

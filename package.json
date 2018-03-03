@@ -25,6 +25,7 @@
     "plugin-system": "^0.2.1",
     "request": "^2.81.0",
     "sqlite3": "^3.1.9",
+    "stacktrace-js": "^2.0.0",
     "stacktrace-parser": "^0.1.4",
     "word-wrap": "^1.2.3"
   }

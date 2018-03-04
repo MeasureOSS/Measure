@@ -85,7 +85,7 @@ module.exports.dateDiffsByTimePeriods = function(collection, query, groupByField
         var diffs = result.map(o => { return {diff: diffFunction(o), groupDate: moment(o[groupByField])}});
         var groups = module.exports.groupDiffsByTimePeriods(diffs);
         return callback(null, groups);
-    }).catch(e => { console.log("err", e); return callback(e); })
+    }).catch(e => { return callback(e); })
 }
 
 module.exports.timeIncrementGroupings = [

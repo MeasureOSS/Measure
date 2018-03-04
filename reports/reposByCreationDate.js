@@ -9,5 +9,5 @@ module.exports = function(options, callback) {
             title: "Repositories by Creation Date",
             html: html
         })
-    })
+    }).catch(e => { callback(e); })
 }

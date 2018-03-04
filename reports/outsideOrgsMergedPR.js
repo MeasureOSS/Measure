@@ -55,6 +55,6 @@ module.exports = function(options, callback) {
                 title: "Outside Organizations with a merged PR in the last " + days + " days",
                 html: html.join("\n")
             })
-        })
+        }).catch(e => { callback(e); })
 
 }

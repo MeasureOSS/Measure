@@ -105,5 +105,5 @@ module.exports = function(options, callback) {
                 title: "Recent outside contributions",
                 html: html.join("\n")
             })
-        })
+        }).catch(e => { callback(e); })
 }

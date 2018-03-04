@@ -292,7 +292,6 @@ loads.loadTemplates()
     .then(leave)
     .catch(e => {
         try {
-            faoi.error;
             if (db) db.close();
             if (e.isNiceError) {
                 console.error("Problem message:")

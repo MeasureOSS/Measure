@@ -34,7 +34,7 @@ module.exports = function(options, callback) {
 
     options.db.issue.find({}, {"user.login": 1, "closed_by.login": 1, created_at: 1, closed_at: 1}).toArray().then(issues => {
         issues.forEach(function(i) {
-            if (i.closed_at) {
+            if (i.closed_at && i.closed_by) {
                 var ca = moment(i.closed_at);
                 var mr = mostRecentUserAction[i.closed_by.login];
                 if (mr) {
@@ -156,6 +156,6 @@ module.exports = function(options, callback) {
             })
 
 
-        })
-    })
+        }).catch(e => { callback(e); })
+    }).catch(e => { callback(e); })
 }

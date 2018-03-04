@@ -24,7 +24,6 @@ module.exports = function(options, callback) {
         {$or: [{closed_at: null}, {closed_at: {$gte: maxage}}]},
         {created_at: 1, closed_at: 1, repository_url: 1, pull_request: 1, url: 1})
         .sort({created_at: 1}).toArray().then(issues => {
-fail.login;
         var issue_urls = issues.map(i => { return i.url; })
         var issuesByUrl = {};
         issues.forEach(i => {

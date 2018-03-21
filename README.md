@@ -4,7 +4,7 @@ Measure is the working name for this prototype. We're not sold on the name yet e
 
 ## What is Measure?
 
-At its core Measure is, for lack of a better term, a contributor relationship management system. Measure consists of easy to understand widgets that can be arbitrarily displayed to build dashboards. It allows you to understand how people as individuals and as organizations are interacting with open source projects on GitHub. It’s metrics that focus not only on code, but on contributors. 
+At its core Measure is, for lack of a better term, a contributor relationship management system. Measure consists of easy to understand widgets that can be arbitrarily displayed to build dashboards. It allows you to understand how people as individuals and as organizations are interacting with open source projects on GitHub. It’s metrics that focus not only on code, but on contributors.
 
 Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master/assets/img/MeasureOSS-11052017.png)
 
@@ -29,7 +29,7 @@ Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master
 * Teams
     * Contains dashboards aggregated by team (which are groups of repositories defined by you)
 * Reports
-    * Contains individual reports 
+    * Contains individual reports
 * Contributors
     * Contains dashboards for individual contributors
 
@@ -52,12 +52,10 @@ Requirements:
 * node 6.x.
 * git
 
-Check out ghcrawler and -cli:
+Check out ghcrawler, cli and dashboard:
 
 ```
-git clone git@github.com:Microsoft/ghcrawler.git
-git clone git@github.com:Microsoft/ghcrawler-cli.git
-git clone git@github.com:Microsoft/ghcrawler-dashboard.git
+git submodule update --remote --init
 ```
 
 Get a github access token by going to https://github.com/settings/tokens and creating a token. Give it, for now, all permissions (because I haven't worked out which ones it needs yet). Keep a record of it; you're only shown it once.

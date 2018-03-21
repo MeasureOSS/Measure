@@ -1,0 +1,9 @@
+[submodule "ghcrawler"]
+	path = ghcrawler
+	url = git@github.com:Microsoft/ghcrawler.git
+[submodule "ghcrawler-cli"]
+	path = ghcrawler-cli
+	url = git@github.com:Microsoft/ghcrawler-cli.git
+[submodule "ghcrawler-dashboard"]
+	path = ghcrawler-dashboard
+	url = git@github.com:Microsoft/ghcrawler-dashboard.git

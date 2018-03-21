@@ -4,7 +4,7 @@ Measure is the working name for this prototype. We're not sold on the name yet e
 
 ## What is Measure?
 
-At its core Measure is, for lack of a better term, a contributor relationship management system. Measure consists of easy to understand widgets that can be arbitrarily displayed to build dashboards. It allows you to understand how people as individuals and as organizations are interacting with open source projects on GitHub. It’s metrics that focus not only on code, but on contributors. 
+At its core Measure is, for lack of a better term, a contributor relationship management system. Measure consists of easy to understand widgets that can be arbitrarily displayed to build dashboards. It allows you to understand how people as individuals and as organizations are interacting with open source projects on GitHub. It’s metrics that focus not only on code, but on contributors.
 
 Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master/assets/img/MeasureOSS-11052017.png)
 
@@ -29,7 +29,7 @@ Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master
 * Teams
     * Contains dashboards aggregated by team (which are groups of repositories defined by you)
 * Reports
-    * Contains individual reports 
+    * Contains individual reports
 * Contributors
     * Contains dashboards for individual contributors
 
@@ -68,7 +68,7 @@ Now, start up the crawler:
 cd ghcrawler
 npm install # you only need to do this the first time
 cd docker
-CRAWLER_GITHUB_TOKENS=<your github token> docker-compose up # this will take a while the first time because it downloads docker images
+CRAWLER_GITHUB_TOKENS=<your github token> docker-compose up -d  # this will take a while the first time because it downloads docker images
 ```
 
 and teach the crawler about your repositories:

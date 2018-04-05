@@ -77,7 +77,7 @@ and teach the crawler about your repositories:
 cd ghcrawler-cli
 npm install # you only need to do this the first time
 node bin/cc orgs yourorg # e.g., MeasureOSS
-node bin/cc tokens "<your github token>#private" # the quotes are important here
+node bin/cc tokens "<your github token>#private" # the quotes are important here. Note: replace 'private' with 'public' for public repositories, you can have a mix of public and private tokens
 node bin/cc queue agithubid/agithubrepo # e.g., MeasureOSS/Measure
 node bin/cc start 8
 ```

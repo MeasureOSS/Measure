@@ -82,7 +82,7 @@ module.exports = function(options, callback) {
                                     {
                                         data: res.weekly.data.map(n => Math.round(n.average.value / 1000 / 60 / 60)),
                                         borderColor: options.COLORS[0],
-                                        labels: "Average (hrs)"
+                                        label: "Average (hrs)"
                                     }, {
                                         data: res.weekly.data.map(n => Math.round(n.median.value / 1000 / 60 / 60)),
                                         borderColor: options.COLORS[1],

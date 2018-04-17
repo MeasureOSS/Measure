@@ -89,7 +89,7 @@ module.exports.dateDiffsByTimePeriods = function(collection, query, groupByField
 }
 
 module.exports.timeIncrementGroupings = [
-    ["weekly", "YYYY-ww", "weeks"],
+    ["weekly", "gggg-ww", "weeks"],
     ["monthly", "YYYY-MM", "months"]
 ];
 

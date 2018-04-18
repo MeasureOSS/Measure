@@ -10,7 +10,7 @@ module.exports = function(options, callback) {
             orgPeople.forEach(p => {
                 if (!orgUsers[p.login]) orgUsers[p.login] = [];
                 orgUsers[p.login].push({
-                    joined: moment(p.joined),
+                    joined: p.joined ? moment(p.joined) : moment("1900-01-01"),
                     left: p.left ? moment(p.left) : moment()
                 })
                 orgUserNames.add(p.login);

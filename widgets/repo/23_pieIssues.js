@@ -10,7 +10,7 @@ module.exports = function(options, callback) {
             orgPeople.forEach(p => {
                 if (!orgUsers[p.login]) orgUsers[p.login] = [];
                 orgUsers[p.login].push({
-                    joined: moment(p.joined),
+                    joined: p.joined ? moment(p.joined) : moment("1900-01-01"),
                     left: p.left ? moment(p.left) : moment()
                 })
                 orgUserNames.add(p.login);
@@ -18,14 +18,16 @@ module.exports = function(options, callback) {
         }
     });
 
-    options.db.issue.find({state: "open"},{"user.login":1,created_at:1}).toArray().then(openIssues => {
+    options.db.issue.find({state: "open"},{"user.login":1,created_at:1, number:1, title:1}).sort({number:1}).toArray().then(openIssues => {
         var openedByOrg = 0, openedNotByOrg = 0;
         openIssues.forEach(i => {
             if (orgUserNames.has(i.user.login)) {
                 var ci = moment(i.created_at);
                 var isin = false;
                 orgUsers[i.user.login].forEach(daterange => {
-                    if (ci.isAfter(daterange.joined) && ci.isBefore(daterange.left)) {
+                    var afterJoined = daterange.joined ? ci.isAfter(moment(daterange.joined)) : true; // joined being empty means "you've been in the org forever"
+                    var beforeLeft = daterange.left ? ci.isBefore(moment(daterange.left)) : true; // if you never left, then this is in your daterange
+                    if (afterJoined && beforeLeft) {
                         isin = true;
                     }
                 })

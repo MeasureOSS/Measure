@@ -1,10 +1,10 @@
 const moment = require("moment");
 
-var averageArray = arr => arr.reduce( ( p, c ) => p + c, 0 ) / arr.length;
-var medianArray = arr => arr[Math.floor(arr.length/2)];
+var averageArray = arr => arr.length ? arr.reduce( ( p, c ) => p + c, 0 ) / arr.length : 0;
+var medianArray = arr => arr.length ? arr[Math.floor(arr.length/2)] : 0;
 // this isn't strictly 95th percentile, but it's likely to be about right
 // assuming a reasonably even distribution of possibilities
-var pc95Array = arr => arr[Math.floor(0.95*(arr.length-1))];
+var pc95Array = arr => arr.length ? arr[Math.floor(0.95*(arr.length-1))] : 0;
 
 module.exports.averageArray = averageArray;
 module.exports.medianArray = medianArray;

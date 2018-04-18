@@ -18,7 +18,7 @@ module.exports = function(options, callback) {
         }
     });
 
-    options.db.issue.find({state: "open"},{"user.login":1,created_at:1, number:1, title:1}).sort({number:1}).toArray().then(openIssues => {
+    options.db.issue.find({state: "open", pull_request: null},{"user.login":1,created_at:1, number:1, title:1}).sort({number:1}).toArray().then(openIssues => {
         var openedByOrg = 0, openedNotByOrg = 0;
         openIssues.forEach(i => {
             if (orgUserNames.has(i.user.login)) {

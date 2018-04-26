@@ -52,12 +52,10 @@ Requirements:
 * node 6.x.
 * git
 
-Check out ghcrawler and -cli:
+Check out ghcrawler, cli and dashboard:
 
 ```
-git clone git@github.com:Microsoft/ghcrawler.git
-git clone git@github.com:Microsoft/ghcrawler-cli.git
-git clone git@github.com:Microsoft/ghcrawler-dashboard.git
+git submodule update --remote --init
 ```
 
 Get a github access token by going to https://github.com/settings/tokens and creating a token. Give it, for now, all permissions (because I haven't worked out which ones it needs yet). Keep a record of it; you're only shown it once.

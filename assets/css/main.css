@@ -322,10 +322,12 @@ h1 { font-weight: 300; }
 
 a { color: white; text-decoration: none;}
 
-footer h3 {
+footer h3, footer small {
     font-weight: 100;
     text-align: right;
     opacity: 0.4;
+    margin-bottom: 0;
+    display: block;
 }
 
 .main article h1 {

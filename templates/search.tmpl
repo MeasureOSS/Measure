@@ -41,17 +41,17 @@ function doSearch() {
             results = results.slice(0,100);
             clipped = true;
         }
-        var li = document.createElement("li");
-        li.appendChild(document.createTextNode((clipped ? "More than " : "") + results.length + 
+        var tr = document.createElement("tr");
+        tr.appendChild(document.createTextNode((clipped ? "More than " : "") + results.length +
             " result" + (results.length == 1 ? "" : "s") + " found"));
-        sr.appendChild(li);
+        sr.appendChild(tr);
         results.forEach(function(r) {
-            var li = document.createElement("li");
+            var tr = document.createElement("tr");
             var a = document.createElement("a");
             a.href = r.link;
             a.appendChild(document.createTextNode(r.type + ": " + r.name));
-            li.appendChild(a);
-            sr.appendChild(li);
+            tr.appendChild(a);
+            sr.appendChild(tr);
         })
     }, 100);
 }

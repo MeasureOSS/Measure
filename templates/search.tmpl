@@ -8,11 +8,23 @@
                     <div class="row">
                       <div class="column left">
                       <h3> Search on Keys </h3>
-                      <ul style="list-style-type:none">
-                        <li><input name="searchkey" type="checkbox" onclick="doSearch()" value="name" checked/> Name</li>
-                        <li><input name="searchkey" type="checkbox" onclick="doSearch()" value="login" checked/> Login</li>
-                        <li><input name="searchkey" type="checkbox" onclick="doSearch()" value="location" checked/> Location</li>
-                        <li><input name="searchkey" type="checkbox" onclick="doSearch()" value="email" checked/> Email</li>
+                      <ul style="list-style-type:none;padding-left: 0">
+                        <li>
+                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="name" checked/>
+                          <label for="name">Name</label>
+                        </li>
+                        <li>
+                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="login" checked/>
+                          <label for="login">Login</label>
+                        </li>
+                        <li>
+                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="location" checked/>
+                          <label for="location">Location</label>
+                        </li>
+                        <li>
+                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="email" checked/>
+                          <label for="email">Email</label>
+                        </li>
                       </ul>
                       </div>
                       <div class="column right">
@@ -23,10 +35,6 @@
                     </div>
 <style>
 .searchform input { color: black; }
-ul.searchresults {
-    margin: 0;
-    padding: 0;
-}
 #resultscount {
     list-style: none;
     font-weight: bold;
@@ -46,6 +54,14 @@ a {
 }
 .right {
   width: 80%;
+}
+@media screen and (max-width: 600px) {
+    .column {
+        width: 100%;
+    }
+    table.searchresults th, td {
+        display: block;
+    }
 }
 .row:after {
     content: "";
@@ -118,7 +134,7 @@ function checkSearchKey() {
     var selected = [];
       for (var i=0; i<checkboxes.length; i++) {
          if (checkboxes[i].checked) {
-            selected.push(checkboxes[i].value);
+            selected.push(checkboxes[i].id);
          }
       }
     return selected

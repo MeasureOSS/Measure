@@ -48,7 +48,7 @@ A huge thank you to [Linux Fund](http://linuxfund.org/) for sponsoring the initi
 (most of these steps will get automated. But they aren't, yet.)
 
 Requirements:
-* web server with PHP (5.5+) support (if you don't have an existing setup, this can be satisfied with: `docker run --name nginx-measure -p 443:443 -p 80:80 -v /path/to/Measure/dashboard:/var/www/html -d boxedcode/alpine-nginx-php-fpm`
+* web server with PHP (5.5+) support (if you don't have an existing setup, this can be satisfied with: `docker run --name nginx-measure -p 443:443 -p 80:80 -v /path/to/Measure/dashboard:/var/www/html -v /path/to/Measure/database:/var/www/database -d boxedcode/alpine-nginx-php-fpm`
 * node 6.x.
 * git
 * docker-compose

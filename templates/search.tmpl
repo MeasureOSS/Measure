@@ -5,28 +5,79 @@
                     Search: <input type="search">
                     <input type="submit">
                 </form>
-                <ul class="searchresults">
-                </ul>
+                    <div class="row">
+                      <div class="column left">
+                      <h3> Search on Keys </h3>
+                      <ul style="list-style-type:none;padding-left: 0">
+                        <li>
+                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="name" checked/>
+                          <label for="name">Name</label>
+                        </li>
+                        <li>
+                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="login" checked/>
+                          <label for="login">Login</label>
+                        </li>
+                        <li>
+                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="location" checked/>
+                          <label for="location">Location</label>
+                        </li>
+                        <li>
+                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="email" checked/>
+                          <label for="email">Email</label>
+                        </li>
+                      </ul>
+                      </div>
+                      <div class="column right">
+                        <div id="resultscount"></div>
+                        <table class="searchresults">
+                        </table>
+                      </div>
+                    </div>
 <style>
 .searchform input { color: black; }
-ul.searchresults {
-    margin: 0;
-    padding: 0;
-}
-ul.searchresults li:nth-child(1) {
+#resultscount {
     list-style: none;
     font-weight: bold;
     margin: 0;
     padding: 0;
+}
+a {
+    text-decoration: underline;
+}
+.column {
+    float: left;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.left {
+  width: 20%;
+}
+.right {
+  width: 80%;
+}
+@media screen and (max-width: 600px) {
+    .column {
+        width: 100%;
+    }
+    table.searchresults th, td {
+        display: block;
+    }
+}
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+    box-sizing: border-box;
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.0.4/fuse.min.js"></script>
 <script>
 var searchdata = {{{searchdata}}};
 var searchbox = document.querySelector(".searchform input[type=search]");
-var sr = document.querySelector("ul.searchresults");
+var sr = document.querySelector("table.searchresults");
+var searchkeys = ["name", "login", "location", "email"]
 var fuse = new Fuse(searchdata, {
-    keys: ["name", "login"],
+    keys: searchkeys,
     threshold: 0.3
 });
 var waitTimer;
@@ -34,27 +85,61 @@ function doSearch() {
     // bump the timer
     clearTimeout(waitTimer);
     waitTimer = setTimeout(function() {
+        fuse.options.keys = checkSearchKey()
         sr.innerHTML = "";
         var results = fuse.search(searchbox.value);
         var clipped = false;
-        if (results.length > 100) {
-            results = results.slice(0,100);
+        if (results.length > 200) {
+            results = results.slice(0,200);
             clipped = true;
         }
-        var li = document.createElement("li");
-        li.appendChild(document.createTextNode((clipped ? "More than " : "") + results.length + 
-            " result" + (results.length == 1 ? "" : "s") + " found"));
-        sr.appendChild(li);
+        document.getElementById("resultscount").innerHTML = (clipped ? "More than " : "") + results.length + " result" + (results.length == 1 ? "" : "s") + " found";
+        var tr = document.createElement("tr");
+        ["Login", "Type", "Name", "Location", "Email"].forEach(function(h) {
+            addToRow(tr, "th", document.createTextNode(h));
+        })
+        sr.appendChild(tr)
         results.forEach(function(r) {
-            var li = document.createElement("li");
+            var tr = document.createElement("tr");
+
             var a = document.createElement("a");
             a.href = r.link;
-            a.appendChild(document.createTextNode(r.type + ": " + r.name));
-            li.appendChild(a);
-            sr.appendChild(li);
+            a.appendChild(document.createTextNode(r.login));
+            addToRow(tr, "td", a)
+
+            var type = document.createTextNode(r.type);
+            addToRow(tr, "td", type)
+
+            var name = document.createTextNode(r.name);
+            addToRow(tr, "td", name)
+
+            var location = document.createTextNode(r.location);
+            addToRow(tr, "td", location)
+
+            var email = document.createTextNode(r.email);
+            addToRow(tr, "td", email)
+
+            sr.appendChild(tr);
         })
-    }, 100);
+    }, 200);
 }
+function addToRow(row, type, inner) {
+    var td = document.createElement(type);
+    td.appendChild(inner);
+    row.appendChild(td);
+    return row
+}
+function checkSearchKey() {
+    var checkboxes = document.getElementsByName('searchkey');
+    var selected = [];
+      for (var i=0; i<checkboxes.length; i++) {
+         if (checkboxes[i].checked) {
+            selected.push(checkboxes[i].id);
+         }
+      }
+    return selected
+}
+
 document.querySelector(".searchform").onsubmit = function(e) {
     e.preventDefault();
     doSearch();

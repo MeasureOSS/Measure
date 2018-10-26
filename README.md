@@ -18,6 +18,7 @@ Screenshot: ![MeasureOSS demo](https://github.com/MeasureOSS/Measure/blob/master
 * Should be able to completely separate inside and outside contributions
 * Should treat the concept of contributors as first class citizens
     * Your community is really about the people that create the code
+    * it's not about assigning performance scores to your community members, but giving awareness of what's going on so you can find out why
 
 ## Sections
 * Overview

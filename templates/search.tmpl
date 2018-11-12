@@ -7,30 +7,33 @@
                 </form>
                     <div class="row">
                       <div class="column left">
-                      <h3> Search on Keys </h3>
-                      <ul style="list-style-type:none;padding-left: 0">
-                        <li>
-                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="name" checked/>
-                          <label for="name">Name</label>
-                        </li>
-                        <li>
-                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="login" checked/>
-                          <label for="login">Login</label>
-                        </li>
-                        <li>
-                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="location" checked/>
-                          <label for="location">Location</label>
-                        </li>
-                        <li>
-                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="email" checked/>
-                          <label for="email">Email</label>
-                        </li>
-                      </ul>
+                        <h4> Search on Keys </h4>
+                        <ul style="list-style-type:none;padding-left: 0">
+                          <li>
+                            <input name="searchkey" type="checkbox" onclick="doSearch()" id="name" checked/>
+                            <label for="name">Name</label>
+                          </li>
+                          <li>
+                            <input name="searchkey" type="checkbox" onclick="doSearch()" id="login" checked/>
+                            <label for="login">Login</label>
+                          </li>
+                          <li>
+                            <input name="searchkey" type="checkbox" onclick="doSearch()" id="company" checked/>
+                            <label for="company">Company</label>
+                          </li>
+                          <li>
+                            <input name="searchkey" type="checkbox" onclick="doSearch()" id="location" checked/>
+                            <label for="location">Location</label>
+                          </li>
+                          <li>
+                            <input name="searchkey" type="checkbox" onclick="doSearch()" id="email" checked/>
+                            <label for="email">Email</label>
+                          </li>
+                        </ul>
                       </div>
                       <div class="column right">
                         <div id="resultscount"></div>
-                        <table class="searchresults">
-                        </table>
+                        <div id="resultstable"></div>
                       </div>
                     </div>
 <style>
@@ -74,8 +77,7 @@ a {
 <script>
 var searchdata = {{{searchdata}}};
 var searchbox = document.querySelector(".searchform input[type=search]");
-var sr = document.querySelector("table.searchresults");
-var searchkeys = ["name", "login", "location", "email"]
+var searchkeys = ["name", "login", "company", "location", "email"]
 var fuse = new Fuse(searchdata, {
     keys: searchkeys,
     threshold: 0.3
@@ -85,6 +87,11 @@ function doSearch() {
     // bump the timer
     clearTimeout(waitTimer);
     waitTimer = setTimeout(function() {
+        var table = document.createElement("table");
+        table.setAttribute("id", "searchresults");
+        table.setAttribute("class", "sortable");
+        document.getElementById("resultstable").appendChild(table)
+        var sr = document.getElementById("searchresults");
         fuse.options.keys = checkSearchKey()
         sr.innerHTML = "";
         var results = fuse.search(searchbox.value);
@@ -94,11 +101,14 @@ function doSearch() {
             clipped = true;
         }
         document.getElementById("resultscount").innerHTML = (clipped ? "More than " : "") + results.length + " result" + (results.length == 1 ? "" : "s") + " found";
+        var thead = document.createElement("thead");
         var tr = document.createElement("tr");
-        ["Login", "Type", "Name", "Location", "Email"].forEach(function(h) {
+        ["Login", "Type", "Name", "Company", "Location", "Email"].forEach(function(h) {
             addToRow(tr, "th", document.createTextNode(h));
         })
-        sr.appendChild(tr)
+        thead.appendChild(tr);
+        sr.appendChild(thead)
+        var tbody = document.createElement("tbody");
         results.forEach(function(r) {
             var tr = document.createElement("tr");
 
@@ -113,14 +123,19 @@ function doSearch() {
             var name = document.createTextNode(r.name);
             addToRow(tr, "td", name)
 
+            var company = document.createTextNode(r.company);
+            addToRow(tr, "td", company)
+
             var location = document.createTextNode(r.location);
             addToRow(tr, "td", location)
 
             var email = document.createTextNode(r.email);
             addToRow(tr, "td", email)
 
-            sr.appendChild(tr);
+            tbody.appendChild(tr);
         })
+        sr.appendChild(tbody);
+        sorttable.makeSortable(document.querySelector("#searchresults"))
     }, 200);
 }
 function addToRow(row, type, inner) {

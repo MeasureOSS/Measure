@@ -7,6 +7,13 @@
                 </form>
                     <div class="row">
                       <div class="column left">
+                         show
+                          <select id="showentries" onchange="doSearch()">
+                            <option value=100>100</option>
+                            <option value=500>500</option>
+                            <option value=-1>All</option>
+                          </select>
+                          entries
                         <h4> Search on Keys </h4>
                         <ul style="list-style-type:none;padding-left: 0">
                           <li>
@@ -62,7 +69,7 @@ a {
     .column {
         width: 100%;
     }
-    table.searchresults th, td {
+    #searchresults th, td {
         display: block;
     }
 }
@@ -86,7 +93,10 @@ var waitTimer;
 function doSearch() {
     // bump the timer
     clearTimeout(waitTimer);
+    var entries = document.getElementById ("showentries");
+    entries = entries.options[entries.selectedIndex].value
     waitTimer = setTimeout(function() {
+        // create the table here to avoid sortable parsing an incomplete table
         var table = document.createElement("table");
         table.setAttribute("id", "searchresults");
         table.setAttribute("class", "sortable");
@@ -95,12 +105,13 @@ function doSearch() {
         fuse.options.keys = checkSearchKey()
         sr.innerHTML = "";
         var results = fuse.search(searchbox.value);
-        var clipped = false;
-        if (results.length > 200) {
-            results = results.slice(0,200);
-            clipped = true;
+        if (entries == -1 || results.length < entries) {
+            entries = results.length
+            document.getElementById("resultscount").innerHTML = "Found all " + results.length + " results";
+        } else {
+            document.getElementById("resultscount").innerHTML = "Showing " + entries + " of " + results.length + " results";
+            results = results.slice(0,entries);
         }
-        document.getElementById("resultscount").innerHTML = (clipped ? "More than " : "") + results.length + " result" + (results.length == 1 ? "" : "s") + " found";
         var thead = document.createElement("thead");
         var tr = document.createElement("tr");
         ["Login", "Type", "Name", "Company", "Location", "Email"].forEach(function(h) {
@@ -114,29 +125,29 @@ function doSearch() {
 
             var a = document.createElement("a");
             a.href = r.link;
-            a.appendChild(document.createTextNode(r.login));
+            a.appendChild(document.createTextNode(r.login || r.name));
             addToRow(tr, "td", a)
 
-            var type = document.createTextNode(r.type);
+            var type = document.createTextNode(r.type || "");
             addToRow(tr, "td", type)
 
-            var name = document.createTextNode(r.name);
+            var name = document.createTextNode(r.name || "");
             addToRow(tr, "td", name)
 
-            var company = document.createTextNode(r.company);
+            var company = document.createTextNode(r.company || "");
             addToRow(tr, "td", company)
 
-            var location = document.createTextNode(r.location);
+            var location = document.createTextNode(r.location || "");
             addToRow(tr, "td", location)
 
-            var email = document.createTextNode(r.email);
+            var email = document.createTextNode(r.email || "");
             addToRow(tr, "td", email)
 
             tbody.appendChild(tr);
         })
         sr.appendChild(tbody);
         sorttable.makeSortable(document.querySelector("#searchresults"))
-    }, 200);
+    }, entries);
 }
 function addToRow(row, type, inner) {
     var td = document.createElement(type);

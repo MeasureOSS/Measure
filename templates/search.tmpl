@@ -1,35 +1,63 @@
 {{> mainlessheader.tmpl}}
             <div class="main wrapper clearfix report">
                 <h1>Search</h1>
-                <form class="searchform">
+                <form class="searchform" autocomplete="off">
                     Search: <input type="search">
                     <input type="submit">
                 </form>
                     <div class="row">
-                      <div class="column left">
-                      <h3> Search on Keys </h3>
-                      <ul style="list-style-type:none;padding-left: 0">
-                        <li>
-                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="name" checked/>
-                          <label for="name">Name</label>
-                        </li>
-                        <li>
-                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="login" checked/>
-                          <label for="login">Login</label>
-                        </li>
-                        <li>
-                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="location" checked/>
-                          <label for="location">Location</label>
-                        </li>
-                        <li>
-                          <input name="searchkey" type="checkbox" onclick="doSearch()" id="email" checked/>
-                          <label for="email">Email</label>
-                        </li>
-                      </ul>
-                      </div>
-                      <div class="column right">
+                        <div class="column left">
+                           show
+                            <select id="showentries" onchange="doSearch()">
+                                <option value=100>100</option>
+                                <option value=500>500</option>
+                                <option value=-1>All</option>
+                            </select>
+                            entries
+                            <h4> Search on Keys </h4>
+                            <ul style="list-style-type:none;padding-left: 0">
+                                <li>
+                                    <input name="searchkey" type="checkbox" onclick="doSearch()" id="name" checked/>
+                                    <label for="name">Name</label>
+                                </li>
+                                <li>
+                                    <input name="searchkey" type="checkbox" onclick="doSearch()" id="login" checked/>
+                                    <label for="login">Login</label>
+                                </li>
+                                <li>
+                                    <input name="searchkey" type="checkbox" onclick="doSearch()" id="location" checked/>
+                                    <label for="location">Location</label>
+                                </li>
+                                <li>
+                                    <input name="searchkey" type="checkbox" onclick="doSearch()" id="org" checked/>
+                                    <label for="org">Organization</label>
+                                </li>
+                                <li>
+                                    <input name="searchkey" type="checkbox" onclick="doSearch()" id="company" checked/>
+                                    <label for="company">Company</label>
+                                </li>
+                                <li>
+                                    <input name="searchkey" type="checkbox" onclick="doSearch()" id="email" checked/>
+                                    <label for="email">Email</label>
+                                </li>
+                            </ul>
+                            <div id="togglecolumns" style="display:none;">
+                                <h4> Toggle Columns </h4>
+                                <ul style="list-style-type:none;padding-left: 0">
+                                    <li><input type="checkbox" autocomplete="off" checked disabled > Login</li>
+                                    <li><input type="checkbox" autocomplete="off" checked disabled> Type</li>
+                                    <li><input type="checkbox" autocomplete="off" checked disabled> Name</li>
+                                    <li><input type="checkbox" autocomplete="off" onclick='toggleSearchTableClass("hidden-location");' checked> Location</li>
+                                    <li><input type="checkbox" autocomplete="off" onclick='toggleSearchTableClass("hidden-org");' checked> Organization</li>
+                                    <li><input type="checkbox" autocomplete="off" onclick='toggleSearchTableClass("hidden-company");'> Company</li>
+                                    <li><input type="checkbox" autocomplete="off" onclick='toggleSearchTableClass("hidden-email");'> Email</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="column right">
                         <div id="resultscount"></div>
-                        <table class="searchresults">
+                        <table id="searchresults" class="sortable hidden-company hidden-email">
+                            <thead></thead>
                         </table>
                       </div>
                     </div>
@@ -50,16 +78,16 @@ a {
     box-sizing: border-box;
 }
 .left {
-  width: 20%;
+    width: 20%;
 }
 .right {
-  width: 80%;
+    width: 80%;
 }
 @media screen and (max-width: 600px) {
     .column {
         width: 100%;
     }
-    table.searchresults th, td {
+    #searchresults th, td {
         display: block;
     }
 }
@@ -69,13 +97,22 @@ a {
     clear: both;
     box-sizing: border-box;
 }
+table.hidden-location td:nth-child(4),
+table.hidden-org td:nth-child(5),
+table.hidden-company td:nth-child(6),
+table.hidden-email td:nth-child(7),
+table.hidden-location th:nth-child(4),
+table.hidden-org th:nth-child(5),
+table.hidden-company th:nth-child(6),
+table.hidden-email th:nth-child(7) {
+    display:none;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.0.4/fuse.min.js"></script>
 <script>
 var searchdata = {{{searchdata}}};
 var searchbox = document.querySelector(".searchform input[type=search]");
-var sr = document.querySelector("table.searchresults");
-var searchkeys = ["name", "login", "location", "email"]
+var searchkeys = ["name", "login", "location", "org", "company", "email"]
 var fuse = new Fuse(searchdata, {
     keys: searchkeys,
     threshold: 0.3
@@ -84,44 +121,62 @@ var waitTimer;
 function doSearch() {
     // bump the timer
     clearTimeout(waitTimer);
+    var entries = document.getElementById("showentries");
+    entries = entries.options[entries.selectedIndex].value
     waitTimer = setTimeout(function() {
+        // config fuse, and determine how many results to show
+        var sr = document.getElementById("searchresults");
         fuse.options.keys = checkSearchKey()
         sr.innerHTML = "";
         var results = fuse.search(searchbox.value);
-        var clipped = false;
-        if (results.length > 200) {
-            results = results.slice(0,200);
-            clipped = true;
+        if (entries == -1 || results.length < entries) {
+            entries = results.length
+            document.getElementById("resultscount").innerHTML = "Found all " + results.length + " results";
+        } else {
+            document.getElementById("resultscount").innerHTML = "Showing " + entries + " of " + results.length + " results";
+            results = results.slice(0,entries);
         }
-        document.getElementById("resultscount").innerHTML = (clipped ? "More than " : "") + results.length + " result" + (results.length == 1 ? "" : "s") + " found";
+        var thead = document.createElement("thead");
         var tr = document.createElement("tr");
-        ["Login", "Type", "Name", "Location", "Email"].forEach(function(h) {
+        ["Login", "Type", "Name", "Location", "Organization", "Company", "Email"].forEach(function(h) {
             addToRow(tr, "th", document.createTextNode(h));
         })
-        sr.appendChild(tr)
+        thead.appendChild(tr);
+        sr.appendChild(thead)
+        var tbody = document.createElement("tbody");
         results.forEach(function(r) {
             var tr = document.createElement("tr");
 
             var a = document.createElement("a");
             a.href = r.link;
-            a.appendChild(document.createTextNode(r.login));
+            a.appendChild(document.createTextNode(r.login || r.name));
             addToRow(tr, "td", a)
 
-            var type = document.createTextNode(r.type);
+            var type = document.createTextNode(r.type || "");
             addToRow(tr, "td", type)
 
-            var name = document.createTextNode(r.name);
+            var name = document.createTextNode(r.name || "");
             addToRow(tr, "td", name)
 
-            var location = document.createTextNode(r.location);
+            var location = document.createTextNode(r.location || "");
             addToRow(tr, "td", location)
 
-            var email = document.createTextNode(r.email);
+            var org = document.createTextNode(r.org ? r.org.join(", "):"");
+            addToRow(tr, "td", org)
+
+            var company = document.createTextNode(r.company || "");
+            addToRow(tr, "td", company)
+
+            var email = document.createTextNode(r.email || "");
             addToRow(tr, "td", email)
 
-            sr.appendChild(tr);
+            tbody.appendChild(tr);
         })
-    }, 200);
+        sr.appendChild(tbody);
+        // invoke sortable, and reveal toggle options
+        sorttable.makeSortable(document.querySelector("#searchresults"))
+        document.getElementById("togglecolumns").style = ""
+    }, entries);
 }
 function addToRow(row, type, inner) {
     var td = document.createElement(type);
@@ -133,11 +188,14 @@ function checkSearchKey() {
     var checkboxes = document.getElementsByName('searchkey');
     var selected = [];
       for (var i=0; i<checkboxes.length; i++) {
-         if (checkboxes[i].checked) {
-            selected.push(checkboxes[i].id);
-         }
+            if (checkboxes[i].checked) {
+               selected.push(checkboxes[i].id);
+            }
       }
     return selected
+}
+function toggleSearchTableClass(className) {
+  document.querySelector("table#searchresults").classList.toggle(className)
 }
 
 document.querySelector(".searchform").onsubmit = function(e) {

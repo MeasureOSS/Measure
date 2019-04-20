@@ -578,6 +578,8 @@ input[type=range].adjustable-graph-slider {
   -webkit-appearance: none;
   margin: 18px 0;
   width: 100%;
+  background: transparent;
+  box-shadow: none;
 }
 input[type=range].adjustable-graph-slider:focus {
   outline: none;

@@ -91,7 +91,7 @@ Clone this repo
 npm install # only need this the first time
 cp config.yaml.example config.yaml
 # edit config.yaml to contain your list of repositories
-node makedash.js
+npm start
 ```
 
 and your dashboard should be in `dashboard/index.js` (unless you changed that in config.yaml).

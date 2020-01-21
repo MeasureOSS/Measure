@@ -61,7 +61,7 @@ module.exports = function(options, callback) {
                 dt: {$first:{$substrCP:['$created_at', 0, 7]}}
             } },
             { $sort: { _id: 1 } }
-        ], {allowDiskUse: true}, (err, result) => {
+        ], {allowDiskUse: true, cursor: {}}).toArray((err, result) => {
             if (err) return callback(err);
 
             var monthlyValues = groupby(result, "YYYY-MM", "MM-YYYY", "month", linkBase, options);
@@ -78,7 +78,7 @@ module.exports = function(options, callback) {
                     dt: {$first:{$substrCP:['$created_at', 0, 10]}}
                 } },
                 { $sort: { _id: 1 } }
-            ], {allowDiskUse: true}, (err, result) => {
+            ], {allowDiskUse: true, cursor: {}}).toArray((err, result) => {
                 if (err) return callback(err);
 
                 var weeklyValues = groupby(result, "YYYY-ww", "ww-YYYY", "week", linkBase, options);

@@ -6,7 +6,7 @@ module.exports = function(options, callback) {
         { $match: { pull_request: null }},
         { $group: { _id: { $substr: ['$created_at', 0, 7] }, issue_count: { $sum: 1 } } },
         { $sort: { _id: 1 } }
-    ], {allowDiskUse: true}, (err, result) => {
+    ], {allowDiskUse: true, cursor: {}}).toArray((err, result) => {
         if (err) return callback(err);
         var graph = {
             title: "Issues created",

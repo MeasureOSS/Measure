@@ -1,7 +1,7 @@
 module.exports = function(options, callback) {
-    options.db.issue.aggregate([{$group: {_id: "$user.login", total:{$sum:1}}}], (err, issueUsers) => {
+    options.db.issue.aggregate([{$group: {_id: "$user.login", total:{$sum:1}}}], {cursor: {}}).toArray((err, issueUsers) => {
         if (err) return callback(err);
-        options.db.issue_comment.aggregate([{$group: {_id: "$user.login", total:{$sum:1}}}], (err, issueCommentUsers) => {
+        options.db.issue_comment.aggregate([{$group: {_id: "$user.login", total:{$sum:1}}}], {cursor: {}}).toArray((err, issueCommentUsers) => {
             if (err) return callback(err);
             var allUsers = {};
             issueUsers.forEach(u => {

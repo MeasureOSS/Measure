@@ -70,9 +70,9 @@ Now, start up the crawler:
 cd ghcrawler
 npm install # you only need to do this the first time
 cd docker
-CRAWLER_GITHUB_TOKENS=<your github token> docker-compose up # this will take a while the first time because it downloads docker images
+CRAWLER_GITHUB_TOKENS=<your github token> docker-compose up # this will take a while the first time, because it downloads docker images (usually about 5-20 minutes)
+# When setup is done, the process won't terminate. Instead, when the crawler is up and running, you'll see log output from the crawler, in a continuous loop.
 ```
-
 and teach the crawler about your repositories:
 
 ```
@@ -91,7 +91,7 @@ Clone this repo
 npm install # only need this the first time
 cp config.yaml.example config.yaml
 # edit config.yaml to contain your list of repositories
-node makedash.js
+npm start
 ```
 
 and your dashboard should be in `dashboard/index.js` (unless you changed that in config.yaml).

@@ -23,14 +23,9 @@ module.exports = function(options, callback) {
         })
         scores.sort((b,a) => a.score - b.score);
 
-        // remove PRs that are too new
-        if (options.config.hoursToRespond) {
-            let htr = moment().add(-options.config.hoursToRespond, "hours");
-            scores = scores.filter((s) => { return s.created_moment < htr; })
-        }
         let result = {
-            title: "PRs that need attention",
-            list: scores.slice(0,5).map(pr => { 
+            title: "Open PRs sorted by urgency score (descending)",
+            list: scores.map(pr => {
                 return {html: '<a href="' + pr.pr.html_url + '">' + pr.pr.title + '</a>'}; 
             })
         }

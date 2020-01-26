@@ -160,7 +160,7 @@ function apiSecret(options) {
 
 const tableDefinitions = [
     "notes (id INTEGER PRIMARY KEY, login TEXT, note TEXT, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP)",
-    "orgs (id INTEGER PRIMARY KEY, name TEXT)",
+    "orgs (id INTEGER PRIMARY KEY, name TEXT UNIQUE)",
     "people2org (id INTEGER PRIMARY KEY, org INTEGER, login TEXT, joined DATETIME DEFAULT CURRENT_TIMESTAMP, left DATETIME)",
     "orgChanges (id INTEGER PRIMARY KEY, org INTEGER, change TEXT, destination INTEGER)",
     "secret (secret TEXT)",
@@ -173,6 +173,24 @@ function apidb(options) {
             if (err) return reject(NICE_ERRORS.COULD_NOT_OPEN_DB(err, options.sqliteDatabase));
             async.each(tableDefinitions, (td, done) => {
                 db.run("CREATE TABLE IF NOT EXISTS " + td, [], done);
+            }, (err) => {
+                if (err) {
+                    return reject(NICE_ERRORS.COULD_NOT_CREATE_TABLES(err));
+                }
+                db.close();
+                return resolve(options);
+            })
+        });
+    });
+}
+
+function apidbOrg(options) {
+    return new Promise((resolve, reject) => {
+        var sqlite3 = require('sqlite3').verbose();
+        var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
+            if (err) return reject(NICE_ERRORS.COULD_NOT_OPEN_DB(err, options.sqliteDatabase));
+            async.each(options.userConfig.my_organizations, (orgName, done) => {
+                db.run("INSERT OR IGNORE INTO orgs(name) VALUES('"+orgName+"')", [], done);
             }, (err) => {
                 if (err) {
                     return reject(NICE_ERRORS.COULD_NOT_CREATE_TABLES(err));
@@ -276,6 +294,7 @@ loads.loadTemplates()
     .then(createMongoIndexes)
     .then(api)
     .then(apidb)
+    .then(apidbOrg)
     .then(apiSecret)
     .then(apidbActionChanges)
     .then(getAllOrgUsers)

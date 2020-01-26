@@ -29,6 +29,10 @@ database_directory: database
 my_organizations:
   - LinuxFund
 
+# Specify the organization name that you would like to see on the
+# index page
+main_organization: "Measure"
+
 # If hoursToRespond is specified, then a line will be drawn on
 # time series graphs at the position specified; the idea here is
 # that if you'd like to respond to PRs or issues within a certain

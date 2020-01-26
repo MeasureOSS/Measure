@@ -67,7 +67,10 @@ function getAllOrgUsers(options) {
                 options.orgDetails = orgDetails;
 
                 options.userConfig.my_organizationsTitle = "Measure";
-                if (options.userConfig.my_organizations.length > 0) {
+                if (options.userConfig.main_organization) {
+                    options.userConfig.my_organizationsTitle = options.userConfig.main_organization
+                }
+                else if (options.userConfig.my_organizations.length > 0) {
                     options.userConfig.my_organizationsTitle = options.userConfig.my_organizations[0];
                 }
 

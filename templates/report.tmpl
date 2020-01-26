@@ -2,6 +2,7 @@
             <div class="main wrapper clearfix report">
 {{#requires_authentication}}
 <?php
+error_reporting(E_ALL ^ E_NOTICE);
 require("../authlist.php");
 
 $report = <<<EOF

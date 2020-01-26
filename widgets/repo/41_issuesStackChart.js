@@ -24,9 +24,9 @@ function groupby(result, keyFormat, labelFormat, durationStep, linkBase, options
         datasets.closed.push(byGroup.closed[key] || 0);
         var onone = minGroup.clone();
         onone.add(1, durationStep);
-        links.open.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Aopen%20created%3A" + 
+        links.open.push(linkBase+"?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aopen%20created%3A" + 
             minGroup.format("YYYY-MM-DD") + ".." + onone.format("YYYY-MM-DD"));
-        links.closed.push(linkBase+"?utf8=%E2%9C%93&q=is%3Apr%20is%3Aclosed%20created%3A" + 
+        links.closed.push(linkBase+"?utf8=%E2%9C%93&q=is%3Aissue%20is%3Aclosed%20created%3A" + 
             minGroup.format("YYYY-MM-DD") + ".." + onone.format("YYYY-MM-DD"));
         minGroup.add(1, durationStep);
     }

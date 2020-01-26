@@ -125,7 +125,7 @@ module.exports.datesBetween = function(startString, endString, format, increment
 module.exports.fillGaps = function(data) {
     /* graphs often have months or weeks in data, but if nothing happened in
        a month, there'll be no entry at all for that month. This function
-       inspects the data and fills in the gaps with zeroes. */
+       inspects the data and fills in the gaps with the value for the previous period. */
 
     function from_yyyymm(yyyymm) { return {
         p: parseInt(yyyymm.split("-")[1], 10),
@@ -163,6 +163,7 @@ module.exports.fillGaps = function(data) {
             y: now.format("YYYY"), 
             p: now.format(clockover == 53 ? "w" : "MM")
         });
+        var most_recently_seen = 0;
         while (true) {
             if (to_yyyymm(current_p) > now_formatted) { break; }
             if (data.labels[label_pointer] == current) {
@@ -172,7 +173,10 @@ module.exports.fillGaps = function(data) {
                     // create the correct number of datasets
                     for (var i=0; i<data.datasets.length; i++) { ndatasets.push([]); }
                 }
-                for (var i=0; i<data.datasets.length; i++) { ndatasets[i].push(data.datasets[i].data[label_pointer]); }
+                for (var i=0; i<data.datasets.length; i++) {
+                    ndatasets[i].push(data.datasets[i].data[label_pointer]);
+                    most_recently_seen = data.datasets[i].data[label_pointer];
+                }
                 label_pointer += 1;
             } else {
                 // no value for this time period so use zeroes
@@ -181,7 +185,7 @@ module.exports.fillGaps = function(data) {
                     // create the correct number of datasets
                     for (var i=0; i<data.datasets.length; i++) { ndatasets.push([]); }
                 }
-                for (var i=0; i<data.datasets.length; i++) { ndatasets[i].push(0); }
+                for (var i=0; i<data.datasets.length; i++) { ndatasets[i].push(most_recently_seen); }
             }
             // add one to current
             current_p.p += 1;

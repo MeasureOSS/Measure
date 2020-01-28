@@ -179,6 +179,16 @@ function expandGraph(node, graphdata) {
             graphtitle + " " + document.querySelector("nav h2").textContent,
         fontColor: "white"
     };
+    graphdata.options.Measure = { sliderPercentage: 50 };
+    var graphSlider = node.querySelector(".adjustable-graph-slider");
+    if (graphSlider) { graphdata.options.Measure.sliderPercentage = graphSlider.valueAsNumber; }
+    var chosenGraphTypeRadio = node.querySelector("input[type='radio']:checked");
+    if (chosenGraphTypeRadio) {
+        var lbl = node.querySelector("label[for='" + chosenGraphTypeRadio.id + "']");
+        if (lbl) {
+            graphdata.options.Measure.graphType = lbl.textContent;
+        }
+    }
     new Chart(cv, graphdata);
 }
 

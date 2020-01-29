@@ -36,8 +36,8 @@ module.exports = function(options, callback) {
             })
         }
 
-        if (options.config.hoursToRespond) {
-            result.list.push({html: '<hr color="red" />'});
+        if (options.config.hoursToRespond && too_new) {
+            result.list.push({html: '<hr />'});
             result.list = result.list.concat(too_new.map(pr => {
                 return {html: '<a href="' + pr.pr.html_url + '">' + pr.pr.title + '</a>'};
             }))

@@ -23,12 +23,27 @@ module.exports = function(options, callback) {
         })
         scores.sort((b,a) => a.score - b.score);
 
+        if (options.config.hoursToRespond) {
+            let htr = moment().subtract(options.config.hoursToRespond, "hours");
+            too_new = scores.filter((s) => { return s.created_moment >= htr; });
+            scores = scores.filter((s) => { return s.created_moment < htr; });
+        }
+
         let result = {
             title: "Open PRs sorted by urgency score (descending)",
             list: scores.map(pr => {
                 return {html: '<a href="' + pr.pr.html_url + '">' + pr.pr.title + '</a>'}; 
             })
         }
+
+        if (options.config.hoursToRespond) {
+            result.list.append({html: '<hr />'});
+            result.list.append({html: '<b>New PRs</b>'});
+            result.list = result.list.concat(too_new.map(pr => {
+                return {html: '<a href="' + pr.pr.html_url + '">' + pr.pr.title + '</a>'};
+            }))
+        }
+
         options.templates.list(result, callback);
     }).catch(e => { callback(e); });;
 }

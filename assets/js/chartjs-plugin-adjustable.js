@@ -8,6 +8,7 @@ Chart.plugins.register({
 
         var currentDataType;
         var rememberedSliderValues = {};
+        var currentSliderPercentage = 100;
         function choose(dataType, options) {
             var ndatasets = JSON.parse(JSON.stringify(c.config.data.adjustable[dataType || currentDataType].datasets));
             var nlabels = JSON.parse(JSON.stringify(c.config.data.adjustable[dataType || currentDataType].labels));
@@ -16,24 +17,20 @@ Chart.plugins.register({
                 // we're displaying the dataType we've already got, so
                 // this is a slider change. Crop the lists, and crop them
                 // from the right-hand end
+                var pointsToShow;
                 ndatasets.forEach(function(nd) {
-                    nd.data = nd.data.slice(nd.data.length - slider.valueAsNumber);
+                    pointsToShow = Math.ceil(nd.data.length * slider.valueAsNumber / 100);
+                    var minPointsToShow = c.config.data.adjustable[dataType || currentDataType].minimumLength || 1;
+                    if (pointsToShow < minPointsToShow) pointsToShow = minPointsToShow;
+                    //console.log("showing", pointsToShow, "data points for type",
+                    //    dataType, "for slider val", slider.valueAsNumber, "pc of", nd.data.length);
+                    nd.data = nd.data.slice(nd.data.length - pointsToShow);
                 })
-                console.log("graph", c, "slidermax", slider.max, "sliderval", slider.valueAsNumber, "len", nlabels.length, "so show from", nlabels.length - slider.valueAsNumber);
-                nlabels = nlabels.slice(nlabels.length - slider.valueAsNumber);
+                nlabels = nlabels.slice(nlabels.length - pointsToShow);
             } else {
-                // this is a change to the dataType
-                rememberedSliderValues[currentDataType] = slider.valueAsNumber;
-                slider.max = nlabels.length;
-                slider.min = c.config.data.adjustable[dataType].minimumLength || 1;
-                slider.value = rememberedSliderValues[dataType] || slider.max;
-                if (c.config.data.adjustable[dataType].sliderInitial && !rememberedSliderValues[dataType]) {
-                    // initial value of the slider is set. In the next tick, set to that
-                    setTimeout(function() {
-                        slider.value = c.config.data.adjustable[dataType].sliderInitial;
-                        choose(null, {update: true});
-                    }, 20);
-                }
+                setTimeout(function() {
+                    choose(null, {update: true});
+                }, 20);
             }
             if (dataType) currentDataType = dataType;
 
@@ -48,7 +45,12 @@ Chart.plugins.register({
             inp.type = "range";
             inp.className = "adjustable-graph-slider";
             inp.step = 1;
-            console.log(inp);
+            inp.min = 0;
+            inp.max = 100;
+            // fullscreened graphs put the current slider percentage in the options; pick it up
+            if (c.config && c.config.options && c.config.options.Measure && c.config.options.Measure.sliderPercentage != undefined) {
+                inp.value = c.config.options.Measure.sliderPercentage;
+            }
             if (c.canvas.nextElementSibling) {
                 c.canvas.parentNode.insertBefore(inp, c.canvas.nextElementSibling);
             } else {
@@ -67,6 +69,10 @@ Chart.plugins.register({
             ul.className = "adjustable-graph-chooser";
             var defaultKey, keysToRadio = {};
             var counter = 0;
+            var fullscreenedGraphType;
+            if (c.config.options && c.config.options.Measure && c.config.options.Measure.graphType) {
+                fullscreenedGraphType = c.config.options.Measure.graphType;
+            }
             Object.keys(c.config.data.adjustable).forEach(function(dataType) {
                 counter += 1;
                 var li = document.createElement("li");
@@ -76,7 +82,11 @@ Chart.plugins.register({
                 r.name = "adj-chooser-" + c.id;
                 r.id = "adj-chooser-" + c.id + "-" + counter;
                 lbl.htmlFor = r.id;
-                if (c.config.data.adjustable[dataType].default) {
+                if (c.config.data.adjustable[dataType].default && !fullscreenedGraphType) {
+                    defaultKey = dataType;
+                    r.checked = true;
+                }
+                if (fullscreenedGraphType && dataType == fullscreenedGraphType) {
                     defaultKey = dataType;
                     r.checked = true;
                 }

@@ -68,7 +68,7 @@ function groupby(result, keyFormat, labelFormat, durationStep) {
 }
 var timePeriods = {
     monthly: {keyFormat:"YYYY-MM", labelFormat:"MM-YYYY", durationStep:"month"},
-    weekly: {keyFormat:"YYYY-ww", labelFormat:"ww-YYYY", durationStep:"week"}
+    weekly: {keyFormat:"gggg-ww", labelFormat:"ww-gggg", durationStep:"week"}
 };
 
 module.exports.groupDiffsByTimePeriods = function(diffs) {

@@ -101,6 +101,7 @@ function getMyOrgUsers(options) {
 
 
 function api(options) {
+    if (options.userConfig.debug) { console.log("Writing API manager"); }
     return new Promise((resolve, reject) => {
         fs.readFile("php/api.php", {encoding: "utf-8"}, (err, data) => {
             options.sqliteDatabase = options.userConfig.database_directory + "/admin.db";
@@ -119,6 +120,7 @@ function api(options) {
 }
 
 function apiSecret(options) {
+    if (options.userConfig.debug) { console.log("Writing API secret"); }
     return new Promise((resolve, reject) => {
         function apiSecretWrite(secret) {
             fs.readFile("php/secret.php", {encoding: "utf-8"}, (err, data) => {
@@ -164,6 +166,7 @@ const tableDefinitions = [
     "bio (login TEXT PRIMARY KEY, name TEXT, company TEXT, blog TEXT, location TEXT, email TEXT, hireable TEXT)"
 ];
 function apidb(options) {
+    if (options.userConfig.debug) { console.log("Creating API DB"); }
     return new Promise((resolve, reject) => {
         var sqlite3 = require('sqlite3').verbose();
         var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
@@ -183,6 +186,7 @@ function apidb(options) {
 
 /* Look for changes marked in the database -- orgs deleted or merged -- and actually execute them */
 function apidbActionChanges(options) {
+    if (options.userConfig.debug) { console.log("Managing deleted and merged orgs"); }
     return new Promise((resolve, reject) => {
         var sqlite3 = require('sqlite3').verbose();
         var db = new sqlite3.Database(options.sqliteDatabase, (err) => {
@@ -220,6 +224,7 @@ function apidbActionChanges(options) {
 }
 
 function createMongoIndexes(options) {
+    if (options.userConfig.debug) { console.log("Creating MongoDB indexes"); }
     let indexes = [
         {collection: "pull_request", fields: {"updated_at":1}},
         {collection: "issue_comment", fields: {"updated_at":1}},

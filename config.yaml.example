@@ -55,3 +55,7 @@ authentication:
     client_id: abababababababababab
     client_secret: cdcdcdcdcdcdcdcdcdccdcdcdccdcdcdcdcdcdcd
     organization: MeasureOSS
+
+# Set the title of the front page of the Measure dashboard.
+# This is optional; if not provided, Measure will choose something sensible.
+# main_page_title: Metrics for our community

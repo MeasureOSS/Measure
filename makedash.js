@@ -228,7 +228,11 @@ function createMongoIndexes(options) {
     let indexes = [
         {collection: "pull_request", fields: {"updated_at":1}},
         {collection: "issue_comment", fields: {"updated_at":1}},
-        {collection: "issue", fields: {"updated_at":1}}
+        {collection: "issue", fields: {"updated_at":1}},
+        {collection: "issue_comment", fields: {"created_at":1}},
+        {collection: "issue", fields: {"created_at":1}},
+        {collection: "issue_comment", fields: {"issue_url": 1, "created_at":1}},
+        {collection: "repo", fields: {"created_at":1}},
     ];
     return new Promise((resolve, reject) => {
         async.each(indexes, (index, done) => {
